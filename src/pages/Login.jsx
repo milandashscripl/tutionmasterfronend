@@ -1,19 +1,35 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../api/axios";
 import "./Auth.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // TEMP AUTH
-    localStorage.setItem("token", "dummy_token");
+    try {
+      setLoading(true);
 
-    navigate("/dashboard");
+      const { data } = await API.post("/auth/login", {
+        email,
+        password,
+      });
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      navigate("/dashboard");
+    } catch (error) {
+      alert(error.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,7 +53,9 @@ const Login = () => {
           required
         />
 
-        <button>Login</button>
+        <button disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
       </form>
     </div>
   );

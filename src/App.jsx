@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Verify from "./pages/Verify";
@@ -7,6 +7,10 @@ import Dashboard from "./pages/Dashboard";
 import Forgot from "./pages/Forgot";
 import Reset from "./pages/Reset";
 import Profile from "./pages/Profile";
+import Chats from "./pages/Chats";
+import Courses from "./pages/Courses";
+import Settings from "./pages/Settings";
+import API from "./api/api";
 
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
@@ -36,7 +40,10 @@ export default function App() {
             <Route path="/forgot" element={<Forgot />} />
             <Route path="/reset" element={<Reset />} />
             <Route path="/dashboard" element={<Dashboard isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/chats" element={<Chats isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />} />
+            <Route path="/courses" element={<Courses isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />} />
+            <Route path="/profile" element={<Profile isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />} />
+            <Route path="/settings" element={<Settings isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />} />
           </Routes>
         </div>
       </div>
@@ -46,8 +53,17 @@ export default function App() {
 
 function HeaderComp({ toggleSidebar }) {
   const location = useLocation();
+  const [user, setUser] = useState(null);
   const hideHeader = ["/", "/register", "/verify", "/forgot", "/reset"].includes(location.pathname);
+  const isDashboard = ["/dashboard", "/chats", "/courses", "/profile", "/settings"].includes(location.pathname);
+  
   if (hideHeader) return null;
+
+  useEffect(() => {
+    if (isDashboard) {
+      API.get("/user/me").then((res) => setUser(res.data)).catch(() => { });
+    }
+  }, [isDashboard]);
 
   return (
     <header className="brand-header">
@@ -65,14 +81,22 @@ function HeaderComp({ toggleSidebar }) {
       </div>
 
       <nav className="top-nav">
-        <Link to="/" className="link">Sign in</Link>
-        <Link to="/register" className="link">Register</Link>
-        <a href="#about" className="link">About us</a>
-        <a href="#contact" className="link">Contact Us</a>
+        {!isDashboard && (
+          <>
+            <Link to="/" className="link">Sign in</Link>
+            <Link to="/register" className="link">Register</Link>
+            <a href="#about" className="link">About us</a>
+            <a href="#contact" className="link">Contact Us</a>
+          </>
+        )}
 
         <div className="profile-menu-wrapper">
           <button className="profile-button" aria-label="Profile">
-            <div className="avatar">U</div>
+            {user?.profilePic?.url ? (
+              <img src={user.profilePic.url} alt="profile" style={{width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover'}} />
+            ) : (
+              <div className="avatar">{user?.fullName ? user.fullName[0].toUpperCase() : 'U'}</div>
+            )}
           </button>
           <div className="profile-dropdown">
             <Link to="/profile" className="dropdown-item">Go to profile</Link>

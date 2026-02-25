@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import API from "../api/api";
+import Sidebar from "../components/Sidebar";
 
-export default function Profile() {
+export default function Profile({ isSidebarOpen, toggleSidebar }) {
   const [user, setUser] = useState(null);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
@@ -40,8 +41,23 @@ export default function Profile() {
   if (!user) return <div className="card">Loading...</div>;
 
   return (
-    <div className="card">
-      <h2>Profile</h2>
+    <div className="layout">
+      <div className={"overlay " + (isSidebarOpen ? "open" : "")} onClick={() => toggleSidebar && toggleSidebar(false)} />
+      <div className={"sidebar " + (isSidebarOpen ? "open" : "closed")}>
+        <Sidebar user={user} onNavigate={() => {}} />
+      </div>
+
+      <main className="main" style={{ width: "100%" }}>
+        <div className="hero">
+          <div className="lead">
+            <h2>My Profile</h2>
+            <p className="muted">Manage your account and personal information</p>
+          </div>
+        </div>
+
+        <div style={{ maxWidth: "600px" }}>
+          <div className="card">
+      <h2>My Profile</h2>
       {!editing ? (
         <div>
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -77,6 +93,9 @@ export default function Profile() {
           </div>
         </div>
       )}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

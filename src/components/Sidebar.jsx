@@ -1,11 +1,11 @@
-import React from "react";
+import React from "react";\nimport { useNavigate } from "react-router-dom";
 
 const NAV_ITEMS = [
-  { key: "home", label: "Home", icon: "🏠" },
-  { key: "chats", label: "Chats", icon: "💬" },
-  { key: "courses", label: "Courses", icon: "📚" },
-  { key: "profile", label: "Profile", icon: "👤" },
-  { key: "update", label: "Update", icon: "⚙️" },
+  { key: "home", label: "Home", icon: "🏠", path: "/dashboard" },
+  { key: "chats", label: "Chats", icon: "💬", path: "/chats" },
+  { key: "courses", label: "Courses", icon: "📚", path: "/courses" },
+  { key: "profile", label: "Profile", icon: "👤", path: "/profile" },
+  { key: "settings", label: "Settings", icon: "⚙️", path: "/settings" },
 ];
 
 function initialsOf(name) {
@@ -16,10 +16,20 @@ function initialsOf(name) {
 }
 
 export default function Sidebar({ user, onEdit, onNavigate }) {
+  const navigate = useNavigate();
+
+  const handleNavigate = (path) => {
+    navigate(path);
+  };
+
+  const handleProfileClick = () => {
+    navigate("/profile");
+  };
+
   return (
     <aside className="sidebar">
       <div className="sidebar-inner">
-        <div className="profile-block">
+        <div className="profile-block" onClick={handleProfileClick} style={{cursor: 'pointer'}}>
           <div className="avatar-wrap">
             {user?.profilePic?.url ? (
               <img src={user.profilePic.url} alt="profile" />
@@ -36,7 +46,7 @@ export default function Sidebar({ user, onEdit, onNavigate }) {
 
         <nav className="sidebar-nav">
           {NAV_ITEMS.map((it) => (
-            <button key={it.key} className="nav-item" onClick={() => onNavigate(it.key)}>
+            <button key={it.key} className="nav-item" onClick={() => handleNavigate(it.path)}>
               <span className="nav-icon">{it.icon}</span>
               <span className="nav-label">{it.label}</span>
             </button>
@@ -44,7 +54,7 @@ export default function Sidebar({ user, onEdit, onNavigate }) {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="logout-button" onClick={() => onNavigate("logout")}>Logout</button>
+          <button className="logout-button" onClick={() => { localStorage.removeItem('token'); window.location.href = '/'; }}>Logout</button>
         </div>
       </div>
     </aside>

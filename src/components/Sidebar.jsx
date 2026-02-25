@@ -1,4 +1,5 @@
-import React from "react";\nimport { useNavigate } from "react-router-dom";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const NAV_ITEMS = [
   { key: "home", label: "Home", icon: "🏠", path: "/dashboard" },

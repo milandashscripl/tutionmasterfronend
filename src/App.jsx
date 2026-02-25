@@ -4,6 +4,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Verify from "./pages/Verify";
 import Dashboard from "./pages/Dashboard";
+import Forgot from "./pages/Forgot";
+import Reset from "./pages/Reset";
+import Profile from "./pages/Profile";
 
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
@@ -30,7 +33,10 @@ export default function App() {
             <Route path="/" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verify" element={<Verify />} />
+            <Route path="/forgot" element={<Forgot />} />
+            <Route path="/reset" element={<Reset />} />
             <Route path="/dashboard" element={<Dashboard isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
         </div>
       </div>
@@ -40,7 +46,7 @@ export default function App() {
 
 function HeaderComp({ toggleSidebar }) {
   const location = useLocation();
-  const hideHeader = ["/", "/register", "/verify"].includes(location.pathname);
+  const hideHeader = ["/", "/register", "/verify", "/forgot", "/reset"].includes(location.pathname);
   if (hideHeader) return null;
 
   return (
@@ -69,7 +75,7 @@ function HeaderComp({ toggleSidebar }) {
             <div className="avatar">U</div>
           </button>
           <div className="profile-dropdown">
-            <Link to="/dashboard" className="dropdown-item">Go to profile</Link>
+            <Link to="/profile" className="dropdown-item">Go to profile</Link>
             <button className="dropdown-item" onClick={() => { localStorage.removeItem('token'); window.location.href = '/'; }}>Logout</button>
           </div>
         </div>

@@ -72,9 +72,10 @@ export default function Login() {
         </button>
       </form>
 
-        <p className="link" style={{ marginTop: 12 }} onClick={() => navigate("/register")}>
-          Create an account
-        </p>
+          <p style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+            <span className="link" style={{ cursor: 'pointer' }} onClick={() => navigate("/register")}>Create an account</span>
+            <span className="link" style={{ cursor: 'pointer' }} onClick={() => navigate("/forgot")}>Forgot password?</span>
+          </p>
       </div>
     </div>
   );

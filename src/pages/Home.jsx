@@ -49,7 +49,7 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
       {/* overlay for mobile when sidebar open */}
       <div className={"overlay " + (isSidebarOpen ? "open" : "")} onClick={() => toggleSidebar && toggleSidebar(false)} />
 
-      <div className={"sidebar " + (isSidebarOpen ? "" : "closed")}>
+      <div className={"sidebar " + (isSidebarOpen ? "open" : "closed")}>
         <Sidebar user={user} onEdit={handleEditPic} onNavigate={handleNavigate} />
       </div>
 

@@ -19,7 +19,7 @@ export default function Sidebar({ user, onEdit, onNavigate }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-inner">
-        <div className="profile-block compact">
+        <div className="profile-block">
           <div className="avatar-wrap">
             {user?.profilePic?.url ? (
               <img src={user.profilePic.url} alt="profile" />
@@ -32,8 +32,6 @@ export default function Sidebar({ user, onEdit, onNavigate }) {
             <div className="profile-name">{user?.fullName}</div>
             <div className="profile-role">{user?.registrationType || "Student"}</div>
           </div>
-
-          <button className="edit-pic-button" onClick={onEdit} title="Edit profile picture">✏️</button>
         </div>
 
         <nav className="sidebar-nav">

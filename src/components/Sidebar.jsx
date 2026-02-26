@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-
+// mm
 const NAV_ITEMS = [
   { key: "home", label: "Home", icon: "🏠", path: "/dashboard" },
   { key: "chats", label: "Chats", icon: "💬", path: "/chats" },

@@ -57,13 +57,13 @@ function HeaderComp({ toggleSidebar }) {
   const hideHeader = ["/", "/register", "/verify", "/forgot", "/reset"].includes(location.pathname);
   const isDashboard = ["/dashboard", "/chats", "/courses", "/profile", "/settings"].includes(location.pathname);
   
-  if (hideHeader) return null;
-
   useEffect(() => {
     if (isDashboard) {
       API.get("/user/me").then((res) => setUser(res.data)).catch(() => { });
     }
   }, [isDashboard]);
+
+  if (hideHeader) return null;
 
   return (
     <header className="brand-header">

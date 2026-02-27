@@ -86,7 +86,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
   }, [user]);
 
   // =============================
-  // START CHAT (AUTO CREATE)
+  // START CHAT
   // =============================
   const handleStartChat = async (otherUserId) => {
     try {
@@ -153,6 +153,14 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
     }
   };
 
+  // ENTER to send, SHIFT+ENTER for newline
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e);
+    }
+  };
+
   if (!user) return <div className="card">Loading...</div>;
 
   return (
@@ -197,7 +205,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
                   borderBottom: "1px solid #f1f1f1",
                 }}
               >
-                {u.name || u.email}
+                {u.fullName || u.email}
               </div>
             ))}
           </div>
@@ -254,6 +262,9 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
                                 ? "#fff"
                                 : "#000",
                             maxWidth: "60%",
+                            direction: "ltr",
+                            textAlign: "left",
+                            wordBreak: "break-word",
                           }}
                         >
                           {msg.content}
@@ -261,7 +272,6 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
                       </div>
                     ))
                   )}
-
                   <div ref={messagesEndRef} />
                 </div>
 
@@ -271,16 +281,32 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
                     display: "flex",
                     padding: "16px",
                     gap: "10px",
+                    alignItems: "flex-end",
                   }}
                 >
-                  <input
-                    type="text"
+                  <textarea
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type message..."
-                    style={{ flex: 1 }}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type your message..."
+                    rows={2}
+                    style={{
+                      flex: 1,
+                      resize: "none",
+                      direction: "ltr",
+                      textAlign: "left",
+                      padding: "10px 14px",
+                      fontSize: "15px",
+                      borderRadius: "8px",
+                      border: "1px solid #ddd",
+                      minHeight: "50px",
+                    }}
                   />
-                  <button disabled={sending}>
+
+                  <button
+                    disabled={sending}
+                    style={{ height: "50px", padding: "0 20px" }}
+                  >
                     {sending ? "Sending..." : "Send"}
                   </button>
                 </form>

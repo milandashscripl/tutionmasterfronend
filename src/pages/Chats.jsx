@@ -42,7 +42,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
   useEffect(() => {
     if (!user) return;
 
-    API.get("/users")
+    API.get("/user")
       .then((res) => setUsers(res.data || []))
       .catch(() => setUsers([]));
   }, [user]);

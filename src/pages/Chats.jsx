@@ -133,10 +133,9 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
     try {
       setSending(true);
 
-      const res = await API.post(
-        `/chats/${selectedChat}/messages`,
-        { content: newMessage }
-      );
+      const res = await API.post(`/chats/${selectedChat}/messages`, {
+        content: newMessage,
+      });
 
       setMessages((prev) => [...prev, res.data]);
 
@@ -185,9 +184,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
         >
           {/* LEFT PANEL */}
           <div className="card" style={{ padding: 0 }}>
-            <div style={{ padding: "16px", fontWeight: "bold" }}>
-              Users
-            </div>
+            <div style={{ padding: "16px", fontWeight: "bold" }}>Users</div>
 
             {users.length === 0 && (
               <div style={{ padding: "16px", color: "#777" }}>
@@ -258,9 +255,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
                                 ? "var(--accent-1)"
                                 : "#f1f1f1",
                             color:
-                              msg.sender._id === user._id
-                                ? "#fff"
-                                : "#000",
+                              msg.sender._id === user._id ? "#fff" : "#000",
                             maxWidth: "60%",
                             direction: "ltr",
                             textAlign: "left",
@@ -274,41 +269,73 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
                   )}
                   <div ref={messagesEndRef} />
                 </div>
-
                 <form
                   onSubmit={handleSendMessage}
                   style={{
-                    display: "flex",
-                    padding: "16px",
-                    gap: "10px",
-                    alignItems: "flex-end",
+                    padding: "14px",
+                    borderTop: "1px solid #eee",
+                    background: "#fff",
                   }}
                 >
-                  <textarea
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Type your message..."
-                    rows={2}
+                  <div
                     style={{
-                      flex: 1,
-                      resize: "none",
-                      direction: "ltr",
-                      textAlign: "left",
-                      padding: "10px 14px",
-                      fontSize: "15px",
-                      borderRadius: "8px",
-                      border: "1px solid #ddd",
-                      minHeight: "50px",
+                      display: "flex",
+                      alignItems: "center",
+                      background: "#f0f2f5",
+                      borderRadius: "30px",
+                      padding: "8px 14px",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
                     }}
-                  />
-
-                  <button
-                    disabled={sending}
-                    style={{ height: "50px", padding: "0 20px" }}
                   >
-                    {sending ? "Sending..." : "Send"}
-                  </button>
+                    <textarea
+                      value={newMessage}
+                      onChange={(e) => {
+                        setNewMessage(e.target.value);
+                        e.target.style.height = "auto";
+                        e.target.style.height = e.target.scrollHeight + "px";
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage(e);
+                        }
+                      }}
+                      placeholder="Type a message..."
+                      rows={1}
+                      style={{
+                        flex: 1,
+                        border: "none",
+                        background: "transparent",
+                        resize: "none",
+                        outline: "none",
+                        fontSize: "15px",
+                        direction: "ltr",
+                        textAlign: "left",
+                        maxHeight: "120px",
+                      }}
+                    />
+
+                    <button
+                      type="submit"
+                      disabled={sending}
+                      style={{
+                        border: "none",
+                        background: "var(--accent-1)",
+                        color: "#fff",
+                        borderRadius: "50%",
+                        width: "38px",
+                        height: "38px",
+                        marginLeft: "8px",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      ➤
+                    </button>
+                  </div>
                 </form>
               </>
             ) : (

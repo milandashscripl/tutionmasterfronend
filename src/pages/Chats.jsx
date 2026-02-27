@@ -9,11 +9,13 @@ const SOCKET_URL =
 
 export default function Chats({ isSidebarOpen, toggleSidebar }) {
   const [user, setUser] = useState(null);
+  const [users, setUsers] = useState([]);
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -26,7 +28,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
   }, [messages]);
 
   // =============================
-  // LOAD USER
+  // LOAD CURRENT USER
   // =============================
   useEffect(() => {
     API.get("/user/me")
@@ -35,68 +37,89 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
   }, []);
 
   // =============================
-  // SOCKET INIT
+  // LOAD USERS
   // =============================
   useEffect(() => {
     if (!user) return;
 
-    const socket = io(SOCKET_URL, {
-      auth: {
-        token: localStorage.getItem("token"),
-      },
-      transports: ["websocket"],
-    });
-
-    socketRef.current = socket;
-
-    socket.on("connect", () => {
-      console.log("🟢 Connected:", socket.id);
-      socket.emit("user:register", user._id);
-    });
-
-    socket.on("chat:message:new", (message) => {
-      setMessages((prev) => {
-        // Prevent duplicates
-        if (prev.some((m) => m._id === message._id)) return prev;
-        return [...prev, message];
-      });
-    });
-
-    socket.on("disconnect", () => {
-      console.log("🔴 Disconnected");
-    });
-
-    return () => {
-      socket.disconnect();
-    };
+    API.get("/users")
+      .then((res) => setUsers(res.data || []))
+      .catch(() => setUsers([]));
   }, [user]);
 
   // =============================
   // LOAD CHATS
   // =============================
   useEffect(() => {
+    if (!user) return;
+
     API.get("/chats")
       .then((res) => setChats(res.data || []))
       .catch(() => setChats([]));
-  }, []);
+  }, [user]);
 
   // =============================
-  // SELECT CHAT
+  // SOCKET INIT
   // =============================
-  const handleSelectChat = async (chatId) => {
-    setSelectedChat(chatId);
-    setMessages([]);
+  useEffect(() => {
+    if (!user) return;
 
+    const socket = io(SOCKET_URL, {
+      auth: { token: localStorage.getItem("token") },
+      transports: ["websocket"],
+    });
+
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      socket.emit("user:register", user._id);
+    });
+
+    socket.on("chat:message:new", (message) => {
+      setMessages((prev) => {
+        if (prev.some((m) => m._id === message._id)) return prev;
+        return [...prev, message];
+      });
+    });
+
+    return () => socket.disconnect();
+  }, [user]);
+
+  // =============================
+  // START CHAT (AUTO CREATE)
+  // =============================
+  const handleStartChat = async (otherUserId) => {
     try {
+      const res = await API.post(`/chats/user/${otherUserId}`);
+      const chat = res.data;
+
+      setSelectedChat(chat._id);
+
+      setChats((prev) => {
+        if (prev.some((c) => c._id === chat._id)) return prev;
+        return [chat, ...prev];
+      });
+
+      await loadMessages(chat._id);
+    } catch {
+      alert("Failed to start chat");
+    }
+  };
+
+  // =============================
+  // LOAD MESSAGES
+  // =============================
+  const loadMessages = async (chatId) => {
+    try {
+      setLoadingMessages(true);
       const res = await API.get(`/chats/${chatId}/messages`);
       setMessages(res.data || []);
-
       socketRef.current?.emit("chat:join", chatId);
-
-      // Mark as read
       await API.put(`/chats/${chatId}/mark-read`);
     } catch {
       setMessages([]);
+    } finally {
+      setLoadingMessages(false);
     }
   };
 
@@ -107,15 +130,14 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
     e.preventDefault();
     if (!newMessage.trim() || !selectedChat) return;
 
-    setLoading(true);
-
     try {
+      setSending(true);
+
       const res = await API.post(
         `/chats/${selectedChat}/messages`,
         { content: newMessage }
       );
 
-      // Optimistic update
       setMessages((prev) => [...prev, res.data]);
 
       socketRef.current?.emit("chat:message", {
@@ -127,7 +149,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
     } catch (err) {
       alert(err.response?.data?.message || "Failed to send message");
     } finally {
-      setLoading(false);
+      setSending(false);
     }
   };
 
@@ -141,77 +163,115 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
       />
 
       <div className={"sidebar " + (isSidebarOpen ? "open" : "closed")}>
-        <Sidebar user={user} onNavigate={() => {}} />
+        <Sidebar user={user} />
       </div>
 
       <main className="main">
-        <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: "20px", minHeight: "500px" }}>
-          
-          {/* CHAT LIST */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "300px 1fr",
+            gap: "20px",
+            minHeight: "500px",
+          }}
+        >
+          {/* LEFT PANEL */}
           <div className="card" style={{ padding: 0 }}>
-            <div style={{ padding: "16px" }}>
-              <h3>Conversations</h3>
+            <div style={{ padding: "16px", fontWeight: "bold" }}>
+              Users
             </div>
 
-            {chats.map((chat) => (
+            {users.length === 0 && (
+              <div style={{ padding: "16px", color: "#777" }}>
+                No users found
+              </div>
+            )}
+
+            {users.map((u) => (
               <div
-                key={chat._id}
-                onClick={() => handleSelectChat(chat._id)}
+                key={u._id}
+                onClick={() => handleStartChat(u._id)}
                 style={{
                   padding: "12px 16px",
                   cursor: "pointer",
-                  background:
-                    selectedChat === chat._id
-                      ? "rgba(201,163,94,0.1)"
-                      : "transparent",
+                  borderBottom: "1px solid #f1f1f1",
                 }}
               >
-                {chat.participants.find(p => p._id !== user._id)?.name || chat.chatName}
+                {u.name || u.email}
               </div>
             ))}
           </div>
 
-          {/* MESSAGE AREA */}
-          <div className="card" style={{ display: "flex", flexDirection: "column" }}>
+          {/* RIGHT PANEL */}
+          <div
+            className="card"
+            style={{ display: "flex", flexDirection: "column" }}
+          >
             {selectedChat ? (
               <>
-                <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
-                  {messages.map((msg) => (
-                    <div
-                      key={msg._id}
-                      style={{
-                        display: "flex",
-                        justifyContent:
-                          msg.sender._id === user._id
-                            ? "flex-end"
-                            : "flex-start",
-                        marginBottom: "10px",
-                      }}
-                    >
+                <div
+                  style={{
+                    padding: "12px 16px",
+                    borderBottom: "1px solid #eee",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Chat
+                </div>
+
+                <div
+                  style={{
+                    flex: 1,
+                    overflowY: "auto",
+                    padding: "16px",
+                  }}
+                >
+                  {loadingMessages ? (
+                    <div>Loading messages...</div>
+                  ) : (
+                    messages.map((msg) => (
                       <div
+                        key={msg._id}
                         style={{
-                          padding: "10px 14px",
-                          borderRadius: "10px",
-                          background:
+                          display: "flex",
+                          justifyContent:
                             msg.sender._id === user._id
-                              ? "var(--accent-1)"
-                              : "#f1f1f1",
-                          color:
-                            msg.sender._id === user._id ? "#fff" : "#000",
-                          maxWidth: "60%",
+                              ? "flex-end"
+                              : "flex-start",
+                          marginBottom: "10px",
                         }}
                       >
-                        {msg.content}
+                        <div
+                          style={{
+                            padding: "10px 14px",
+                            borderRadius: "10px",
+                            background:
+                              msg.sender._id === user._id
+                                ? "var(--accent-1)"
+                                : "#f1f1f1",
+                            color:
+                              msg.sender._id === user._id
+                                ? "#fff"
+                                : "#000",
+                            maxWidth: "60%",
+                          }}
+                        >
+                          {msg.content}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
 
                   <div ref={messagesEndRef} />
                 </div>
 
                 <form
                   onSubmit={handleSendMessage}
-                  style={{ display: "flex", padding: "16px", gap: "10px" }}
+                  style={{
+                    display: "flex",
+                    padding: "16px",
+                    gap: "10px",
+                  }}
                 >
                   <input
                     type="text"
@@ -220,14 +280,14 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
                     placeholder="Type message..."
                     style={{ flex: 1 }}
                   />
-                  <button disabled={loading}>
-                    {loading ? "Sending..." : "Send"}
+                  <button disabled={sending}>
+                    {sending ? "Sending..." : "Send"}
                   </button>
                 </form>
               </>
             ) : (
               <div style={{ margin: "auto" }}>
-                Select a conversation
+                Select a user to start chatting
               </div>
             )}
           </div>

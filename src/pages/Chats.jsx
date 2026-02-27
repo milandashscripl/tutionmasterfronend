@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import API from "../api/api";
 import Sidebar from "../components/Sidebar";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:5000"; // Update this to your backend URL
-let socket = null;
+const SOCKET_URL =
+  import.meta.env.VITE_SOCKET_URL ||
+  "https://tutionmasterbacknend.onrender.com";
 
 export default function Chats({ isSidebarOpen, toggleSidebar }) {
   const [user, setUser] = useState(null);
@@ -14,80 +15,115 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const socketRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  // =============================
+  // AUTO SCROLL
+  // =============================
   useEffect(() => {
-    API.get("/user/me").then((res) => setUser(res.data)).catch(() => { window.location.href = "/"; });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // =============================
+  // LOAD USER
+  // =============================
+  useEffect(() => {
+    API.get("/user/me")
+      .then((res) => setUser(res.data))
+      .catch(() => (window.location.href = "/"));
   }, []);
 
-  // Initialize Socket.io connection
+  // =============================
+  // SOCKET INIT
+  // =============================
   useEffect(() => {
-    if (!socket && user) {
-      socket = io(SOCKET_URL, {
-        auth: {
-          token: localStorage.getItem("token"),
-        },
-      });
+    if (!user) return;
 
-      socket.on("connect", () => {
-        console.log("Connected to chat server");
-        socket.emit("user:register", user._id);
-      });
+    const socket = io(SOCKET_URL, {
+      auth: {
+        token: localStorage.getItem("token"),
+      },
+      transports: ["websocket"],
+    });
 
-      socket.on("chat:message:new", (message) => {
-        if (message.chatId === selectedChat) {
-          setMessages((prev) => [...prev, message]);
-        }
-      });
+    socketRef.current = socket;
 
-      socket.on("disconnect", () => {
-        console.log("Disconnected from chat server");
-      });
+    socket.on("connect", () => {
+      console.log("🟢 Connected:", socket.id);
+      socket.emit("user:register", user._id);
+    });
 
-      return () => {
-        if (socket) {
-          socket.disconnect();
-          socket = null;
-        }
-      };
-    }
+    socket.on("chat:message:new", (message) => {
+      setMessages((prev) => {
+        // Prevent duplicates
+        if (prev.some((m) => m._id === message._id)) return prev;
+        return [...prev, message];
+      });
+    });
+
+    socket.on("disconnect", () => {
+      console.log("🔴 Disconnected");
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, [user]);
 
+  // =============================
+  // LOAD CHATS
+  // =============================
   useEffect(() => {
-    // Load chats list
-    API.get("/chats").then((res) => {
-      setChats(res.data || []);
-    }).catch(() => {
-      setChats([]);
-    });
+    API.get("/chats")
+      .then((res) => setChats(res.data || []))
+      .catch(() => setChats([]));
   }, []);
 
-  const handleSelectChat = (chatId) => {
+  // =============================
+  // SELECT CHAT
+  // =============================
+  const handleSelectChat = async (chatId) => {
     setSelectedChat(chatId);
     setMessages([]);
-    // Load messages for the chat
-    API.get(`/chats/${chatId}/messages`).then((res) => {
+
+    try {
+      const res = await API.get(`/chats/${chatId}/messages`);
       setMessages(res.data || []);
-      // Join chat room via socket
-      if (socket) {
-        socket.emit("chat:join", chatId);
-      }
-    }).catch(() => {
+
+      socketRef.current?.emit("chat:join", chatId);
+
+      // Mark as read
+      await API.put(`/chats/${chatId}/mark-read`);
+    } catch {
       setMessages([]);
-    });
+    }
   };
 
+  // =============================
+  // SEND MESSAGE
+  // =============================
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedChat) return;
 
     setLoading(true);
+
     try {
-      const res = await API.post(`/chats/${selectedChat}/messages`, { content: newMessage });
-      setMessages([...messages, res.data]);
+      const res = await API.post(
+        `/chats/${selectedChat}/messages`,
+        { content: newMessage }
+      );
+
+      // Optimistic update
+      setMessages((prev) => [...prev, res.data]);
+
+      socketRef.current?.emit("chat:message", {
+        chatId: selectedChat,
+        message: res.data,
+      });
+
       setNewMessage("");
-      // Emit via socket for real-time delivery
-      if (socket) {
-        socket.emit("chat:message", { chatId: selectedChat, message: res.data });
-      }
     } catch (err) {
       alert(err.response?.data?.message || "Failed to send message");
     } finally {
@@ -99,102 +135,99 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
 
   return (
     <div className="layout">
-      <div className={"overlay " + (isSidebarOpen ? "open" : "")} onClick={() => toggleSidebar && toggleSidebar(false)} />
+      <div
+        className={"overlay " + (isSidebarOpen ? "open" : "")}
+        onClick={() => toggleSidebar && toggleSidebar(false)}
+      />
+
       <div className={"sidebar " + (isSidebarOpen ? "open" : "closed")}>
         <Sidebar user={user} onNavigate={() => {}} />
       </div>
 
       <main className="main">
-        <div className="hero">
-          <div className="lead">
-            <h2>Messages</h2>
-            <p className="muted">Start a real-time conversation with your contacts</p>
-          </div>
-        </div>
-
         <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: "20px", minHeight: "500px" }}>
-          {/* Chat List */}
-          <div className="card" style={{ maxWidth: "none", padding: "0", borderRadius: "12px", overflow: "hidden" }}>
-            <div style={{ padding: "16px", borderBottom: "1px solid rgba(31,30,28,0.05)", backgroundColor: "var(--accent-2)" }}>
-              <h3 style={{ margin: "0", fontSize: "1rem" }}>Conversations</h3>
+          
+          {/* CHAT LIST */}
+          <div className="card" style={{ padding: 0 }}>
+            <div style={{ padding: "16px" }}>
+              <h3>Conversations</h3>
             </div>
-            <div style={{ overflowY: "auto", maxHeight: "calc(100vh - 300px)" }}>
-              {chats.length === 0 ? (
-                <div style={{ padding: "20px", textAlign: "center", color: "var(--muted)" }}>
-                  No conversations yet
-                </div>
-              ) : (
-                chats.map((chat) => (
-                  <div
-                    key={chat._id}
-                    onClick={() => handleSelectChat(chat._id)}
-                    style={{
-                      padding: "12px 16px",
-                      borderBottom: "1px solid rgba(31,30,28,0.03)",
-                      cursor: "pointer",
-                      backgroundColor: selectedChat === chat._id ? "rgba(201,163,94,0.1)" : "transparent",
-                      transition: "all 150ms ease",
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(201,163,94,0.06)"}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selectedChat === chat._id ? "rgba(201,163,94,0.1)" : "transparent"}
-                  >
-                    <div style={{ fontWeight: "600", marginBottom: "4px" }}>
-                      {chat.participants.find(p => p._id !== user._id)?.name || chat.chatName}
-                    </div>
-                    <div style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Click to open</div>
-                  </div>
-                ))
-              )}
-            </div>
+
+            {chats.map((chat) => (
+              <div
+                key={chat._id}
+                onClick={() => handleSelectChat(chat._id)}
+                style={{
+                  padding: "12px 16px",
+                  cursor: "pointer",
+                  background:
+                    selectedChat === chat._id
+                      ? "rgba(201,163,94,0.1)"
+                      : "transparent",
+                }}
+              >
+                {chat.participants.find(p => p._id !== user._id)?.name || chat.chatName}
+              </div>
+            ))}
           </div>
 
-          {/* Messages Area */}
-          <div className="card" style={{ maxWidth: "none", padding: "0", borderRadius: "12px", display: "flex", flexDirection: "column" }}>
+          {/* MESSAGE AREA */}
+          <div className="card" style={{ display: "flex", flexDirection: "column" }}>
             {selectedChat ? (
               <>
-                <div style={{ padding: "16px", borderBottom: "1px solid rgba(31,30,28,0.05)", backgroundColor: "var(--accent-2)" }}>
-                  <h3 style={{ margin: "0", fontSize: "1rem" }}>Chat</h3>
-                </div>
-                <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {messages.length === 0 ? (
-                    <div style={{ textAlign: "center", color: "var(--muted)", marginTop: "auto", marginBottom: "auto" }}>
-                      No messages yet. Start the conversation!
-                    </div>
-                  ) : (
-                    messages.map((msg, idx) => (
-                      <div key={idx} style={{ display: "flex", justifyContent: msg.sender._id === user._id ? "flex-end" : "flex-start" }}>
-                        <div
-                          style={{
-                            maxWidth: "60%",
-                            padding: "10px 14px",
-                            borderRadius: "10px",
-                            backgroundColor: msg.sender._id === user._id ? "var(--accent-1)" : "rgba(31,30,28,0.05)",
-                            color: msg.sender._id === user._id ? "#fff" : "var(--text)",
-                            wordWrap: "break-word",
-                          }}
-                        >
-                          {msg.content}
-                        </div>
+                <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+                  {messages.map((msg) => (
+                    <div
+                      key={msg._id}
+                      style={{
+                        display: "flex",
+                        justifyContent:
+                          msg.sender._id === user._id
+                            ? "flex-end"
+                            : "flex-start",
+                        marginBottom: "10px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          padding: "10px 14px",
+                          borderRadius: "10px",
+                          background:
+                            msg.sender._id === user._id
+                              ? "var(--accent-1)"
+                              : "#f1f1f1",
+                          color:
+                            msg.sender._id === user._id ? "#fff" : "#000",
+                          maxWidth: "60%",
+                        }}
+                      >
+                        {msg.content}
                       </div>
-                    ))
-                  )}
+                    </div>
+                  ))}
+
+                  <div ref={messagesEndRef} />
                 </div>
-                <form onSubmit={handleSendMessage} style={{ padding: "16px", borderTop: "1px solid rgba(31,30,28,0.05)", display: "flex", gap: "10px" }}>
+
+                <form
+                  onSubmit={handleSendMessage}
+                  style={{ display: "flex", padding: "16px", gap: "10px" }}
+                >
                   <input
                     type="text"
-                    placeholder="Type a message..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    style={{ flex: 1, marginBottom: "0" }}
+                    placeholder="Type message..."
+                    style={{ flex: 1 }}
                   />
-                  <button type="submit" disabled={loading} style={{ width: "auto", padding: "11px 20px" }}>
+                  <button disabled={loading}>
                     {loading ? "Sending..." : "Send"}
                   </button>
                 </form>
               </>
             ) : (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--muted)" }}>
-                Select a conversation to start messaging
+              <div style={{ margin: "auto" }}>
+                Select a conversation
               </div>
             )}
           </div>

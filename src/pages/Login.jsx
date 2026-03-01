@@ -31,6 +31,7 @@ export default function Login() {
   };
 
   return (
+    <div className="auth-layout">
     <div className="auth-page">
       <CanvasBg />
       <div className="card auth-card" role="main">
@@ -61,11 +62,7 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        {error && (
-          <div style={{ color: "#ffdddd", background: "#66131366", padding: 10, borderRadius: 8, marginBottom: 12 }}>
-            {error}
-          </div>
-        )}
+{error && <div className="error-box">{error}</div>}
 
         <button type="submit" disabled={loading}>
           {loading ? "Signing in..." : "Sign in"}
@@ -77,6 +74,7 @@ export default function Login() {
             <span className="link" style={{ cursor: 'pointer' }} onClick={() => navigate("/forgot")}>Forgot password?</span>
           </p>
       </div>
+    </div>
     </div>
   );
 }

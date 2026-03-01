@@ -104,13 +104,26 @@ export default function Settings({ isSidebarOpen, toggleSidebar }) {
   ];
 
   return (
-    <div className="layout">
-      <div className={"overlay " + (isSidebarOpen ? "open" : "")} onClick={() => toggleSidebar && toggleSidebar(false)} />
-      <div className={"sidebar " + (isSidebarOpen ? "open" : "closed")}>
-        <Sidebar user={user} onNavigate={() => {}} />
-      </div>
+        <div className="layout">
+      <div
+        className={"overlay " + (isSidebarOpen ? "open" : "")}
+        onClick={() => toggleSidebar && toggleSidebar(false)}
+      />
 
+     <Sidebar
+  user={user}
+  isOpen={isSidebarOpen}
+  onClose={() => toggleSidebar && toggleSidebar(false)}
+/>
       <main className="main" style={{ width: "100%" }}>
+                <div className="topbar">
+          <button
+            className="menu-btn"
+            onClick={() => toggleSidebar && toggleSidebar(true)}
+          >
+            ☰
+          </button>
+        </div> 
         <div className="hero">
           <div className="lead">
             <h2>Settings</h2>

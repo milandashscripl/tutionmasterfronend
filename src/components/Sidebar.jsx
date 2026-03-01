@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 // mm
 const NAV_ITEMS = [
   { key: "home", label: "Home", icon: "🏠", path: "/dashboard" },
@@ -16,21 +16,23 @@ function initialsOf(name) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export default function Sidebar({ user, onEdit, onNavigate }) {
+export default function Sidebar({ user, isOpen, onClose }) {
   const navigate = useNavigate();
-
+  const location = useLocation();
   const handleNavigate = (path) => {
     navigate(path);
+    if (onClose) onClose();
   };
 
   const handleProfileClick = () => {
     navigate("/profile");
+    if (onClose) onClose();
   };
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       <div className="sidebar-inner">
-        <div className="profile-block" onClick={handleProfileClick} style={{cursor: 'pointer'}}>
+        <div className="profile-block" onClick={handleProfileClick}>
           <div className="avatar-wrap">
             {user?.profilePic?.url ? (
               <img src={user.profilePic.url} alt="profile" />
@@ -41,21 +43,36 @@ export default function Sidebar({ user, onEdit, onNavigate }) {
 
           <div className="profile-meta">
             <div className="profile-name">{user?.fullName}</div>
-            <div className="profile-role">{user?.registrationType || "Student"}</div>
+            <div className="profile-role">
+              {user?.registrationType || "Student"}
+            </div>
           </div>
         </div>
 
         <nav className="sidebar-nav">
           {NAV_ITEMS.map((it) => (
-            <button key={it.key} className="nav-item" onClick={() => handleNavigate(it.path)}>
+            <button
+              key={it.key}
+              className={`nav-item ${location.pathname === it.path ? "active" : ""}`}
+              onClick={() => handleNavigate(it.path)}
+            >
               <span className="nav-icon">{it.icon}</span>
               <span className="nav-label">{it.label}</span>
             </button>
           ))}
-        </nav>
+        </nav>   
 
         <div className="sidebar-footer">
-          <button className="logout-button" onClick={() => { localStorage.removeItem('token'); window.location.href = '/'; }}>Logout</button>
+          <button
+            className="logout-button"
+            onClick={() => {
+              localStorage.removeItem("token");
+              window.location.href = "/";
+              if (onClose) onClose();
+            }}
+          >
+            Logout
+          </button>
         </div>
       </div>
     </aside>

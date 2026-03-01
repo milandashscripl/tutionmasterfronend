@@ -152,13 +152,19 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
     }
   };
 
-  // ENTER to send, SHIFT+ENTER for newline
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage(e);
     }
   };
+
+  // Get selected user name
+  const selectedChatData = chats.find((c) => c._id === selectedChat);
+  const selectedUser =
+    selectedChatData?.participants?.find(
+      (p) => p._id !== user?._id
+    );
 
   if (!user) return <div className="card">Loading...</div>;
 
@@ -169,181 +175,215 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
         onClick={() => toggleSidebar && toggleSidebar(false)}
       />
 
-      <div className={"sidebar " + (isSidebarOpen ? "open" : "closed")}>
-        <Sidebar user={user} />
-      </div>
+      <Sidebar
+        user={user}
+        isOpen={isSidebarOpen}
+        onClose={() => toggleSidebar && toggleSidebar(false)}
+      />
 
-      <main className="main">
+      <main className="main" style={{ padding: "20px" }}>
+         <div className="topbar">
+          <button
+            className="menu-btn"
+            onClick={() => toggleSidebar && toggleSidebar(true)}
+          >
+            ☰
+          </button>
+        </div>
         <div
+          className="card"
           style={{
-            display: "grid",
-            gridTemplateColumns: "300px 1fr",
-            gap: "20px",
-            minHeight: "500px",
+            width: "100%",
+            height: "calc(100vh - 100px)",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
-          {/* LEFT PANEL */}
-          <div className="card" style={{ padding: 0 }}>
-            <div style={{ padding: "16px", fontWeight: "bold" }}>Users</div>
-
-            {users.length === 0 && (
-              <div style={{ padding: "16px", color: "#777" }}>
-                No users found
-              </div>
-            )}
-
-            {users.map((u) => (
+          {/* ================= USER LIST ================= */}
+          {!selectedChat ? (
+            <>
               <div
-                key={u._id}
-                onClick={() => handleStartChat(u._id)}
                 style={{
-                  padding: "12px 16px",
-                  cursor: "pointer",
-                  borderBottom: "1px solid #f1f1f1",
+                  padding: "16px",
+                  fontWeight: "bold",
+                  borderBottom: "1px solid #eee",
                 }}
               >
-                {u.fullName || u.email}
+                Choose a user to start chatting
               </div>
-            ))}
-          </div>
 
-          {/* RIGHT PANEL */}
-          <div
-            className="card"
-            style={{ display: "flex", flexDirection: "column" }}
-          >
-            {selectedChat ? (
-              <>
-                <div
-                  style={{
-                    padding: "12px 16px",
-                    borderBottom: "1px solid #eee",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Chat
-                </div>
+              <div style={{ flex: 1, overflowY: "auto" }}>
+                {users.length === 0 && (
+                  <div style={{ padding: "16px", color: "#777" }}>
+                    No users found
+                  </div>
+                )}
 
-                <div
-                  style={{
-                    flex: 1,
-                    overflowY: "auto",
-                    padding: "16px",
-                  }}
-                >
-                  {loadingMessages ? (
-                    <div>Loading messages...</div>
-                  ) : (
-                    messages.map((msg) => (
-                      <div
-                        key={msg._id}
-                        style={{
-                          display: "flex",
-                          justifyContent:
-                            msg.sender._id === user._id
-                              ? "flex-end"
-                              : "flex-start",
-                          marginBottom: "10px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            padding: "10px 14px",
-                            borderRadius: "10px",
-                            background:
-                              msg.sender._id === user._id
-                                ? "var(--accent-1)"
-                                : "#f1f1f1",
-                            color:
-                              msg.sender._id === user._id ? "#fff" : "#000",
-                            maxWidth: "60%",
-                            direction: "ltr",
-                            textAlign: "left",
-                            wordBreak: "break-word",
-                          }}
-                        >
-                          {msg.content}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-                <form
-                  onSubmit={handleSendMessage}
-                  style={{
-                    padding: "14px",
-                    borderTop: "1px solid #eee",
-                    background: "#fff",
-                  }}
-                >
+                {users.map((u) => (
                   <div
+                    key={u._id}
+                    onClick={() => handleStartChat(u._id)}
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      background: "#f0f2f5",
-                      borderRadius: "30px",
-                      padding: "8px 14px",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                      padding: "14px 16px",
+                      cursor: "pointer",
+                      borderBottom: "1px solid #f1f1f1",
                     }}
                   >
-                    <textarea
-                      value={newMessage}
-                      onChange={(e) => {
-                        setNewMessage(e.target.value);
-                        e.target.style.height = "auto";
-                        e.target.style.height = e.target.scrollHeight + "px";
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendMessage(e);
-                        }
-                      }}
-                      placeholder="Type a message..."
-                      rows={1}
-                      style={{
-                        flex: 1,
-                        border: "none",
-                        background: "transparent",
-                        resize: "none",
-                        outline: "none",
-                        fontSize: "15px",
-                        direction: "ltr",
-                        textAlign: "left",
-                        maxHeight: "120px",
-                      }}
-                    />
+                    {u.fullName || u.email}
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* ================= CHAT HEADER ================= */}
+              <div
+                style={{
+                  padding: "14px 20px",
+                  borderBottom: "1px solid #eee",
+                  fontWeight: "bold",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  background: "#fff",
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setSelectedChat(null);
+                    setMessages([]);
+                  }}
+                  style={{
+                    border: "none",
+                    background: "none",
+                    cursor: "pointer",
+                    fontSize: "20px",
+                  }}
+                >
+                  ←
+                </button>
 
-                    <button
-                      type="submit"
-                      disabled={sending}
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <span style={{ fontSize: "16px" }}>
+                    {selectedUser?.fullName ||
+                      selectedUser?.email ||
+                      "Chat"}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "#777",
+                    }}
+                  >
+                    Active now
+                  </span>
+                </div>
+              </div>
+
+              {/* ================= MESSAGES ================= */}
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  padding: "16px",
+                }}
+              >
+                {loadingMessages ? (
+                  <div>Loading messages...</div>
+                ) : (
+                  messages.map((msg) => (
+                    <div
+                      key={msg._id}
                       style={{
-                        border: "none",
-                        background: "var(--accent-1)",
-                        color: "#fff",
-                        borderRadius: "50%",
-                        width: "38px",
-                        height: "38px",
-                        marginLeft: "8px",
-                        cursor: "pointer",
-                        fontSize: "16px",
                         display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        justifyContent:
+                          msg.sender._id === user._id
+                            ? "flex-end"
+                            : "flex-start",
+                        marginBottom: "10px",
                       }}
                     >
-                      ➤
-                    </button>
-                  </div>
-                </form>
-              </>
-            ) : (
-              <div style={{ margin: "auto" }}>
-                Select a user to start chatting
+                      <div
+                        style={{
+                          padding: "10px 14px",
+                          borderRadius: "10px",
+                          background:
+                            msg.sender._id === user._id
+                              ? "var(--accent-1)"
+                              : "#f1f1f1",
+                          color:
+                            msg.sender._id === user._id
+                              ? "#fff"
+                              : "#000",
+                          maxWidth: "60%",
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {msg.content}
+                      </div>
+                    </div>
+                  ))
+                )}
+                <div ref={messagesEndRef} />
               </div>
-            )}
-          </div>
+
+              {/* ================= MESSAGE INPUT ================= */}
+              <form
+                onSubmit={handleSendMessage}
+                style={{
+                  padding: "14px",
+                  borderTop: "1px solid #eee",
+                  background: "#fff",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: "#f0f2f5",
+                    borderRadius: "30px",
+                    padding: "8px 14px",
+                  }}
+                >
+                  <textarea
+                    value={newMessage}
+                    onChange={(e) =>
+                      setNewMessage(e.target.value)
+                    }
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type a message..."
+                    rows={1}
+                    style={{
+                      flex: 1,
+                      border: "none",
+                      background: "transparent",
+                      resize: "none",
+                      outline: "none",
+                      fontSize: "15px",
+                      maxHeight: "120px",
+                    }}
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={sending}
+                    style={{
+                      border: "none",
+                      background: "var(--accent-1)",
+                      color: "#fff",
+                      borderRadius: "50%",
+                      width: "38px",
+                      height: "38px",
+                      marginLeft: "8px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ➤
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
         </div>
       </main>
     </div>

@@ -63,6 +63,7 @@ export default function Register() {
   };
 
   return (
+    <div className="auth-layout">
     <div className="auth-page">
       <CanvasBg />
       <div className="card auth-card">
@@ -102,15 +103,11 @@ export default function Register() {
 
         {preview && (
           <div style={{ marginBottom: 12 }}>
-            <img src={preview} alt="preview" style={{ width: 96, height: 96, borderRadius: 12, objectFit: "cover" }} />
+           <img src={preview} alt="preview" className="preview-img" />
           </div>
         )}
 
-        {error && (
-          <div style={{ color: "#ffdddd", background: "#66131366", padding: 10, borderRadius: 8, marginBottom: 12 }}>
-            {error}
-          </div>
-        )}
+      {error && <div className="error-box">{error}</div>}
 
         <button type="submit" disabled={loading}>{loading ? "Creating..." : "Create Account"}</button>
       </form>
@@ -119,6 +116,7 @@ export default function Register() {
           Already have an account?
         </p>
       </div>
+    </div>
     </div>
   );
 }

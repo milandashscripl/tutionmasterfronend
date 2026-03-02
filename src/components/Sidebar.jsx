@@ -70,8 +70,8 @@ export default function Sidebar({ user, isOpen, onClose }) {
               window.location.href = "/";
               if (onClose) onClose();
             }}
-          >
-            Logout
+          >  
+          🙍  Logout
           </button>
         </div>
       </div>

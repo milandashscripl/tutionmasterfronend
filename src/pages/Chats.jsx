@@ -17,50 +17,49 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
 
+  const [activeTab, setActiveTab] = useState("all");
+
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  // =============================
-  // AUTO SCROLL
-  // =============================
+  const getInitial = (name) => {
+    if (!name) return "U";
+    return name.charAt(0).toUpperCase();
+  };
+
+  const getProfileUrl = (u) => {
+    return u?.profilePic?.url || u?.profilePic || null;
+  };
+
+  const filteredUsers = users.filter((u) => {
+    if (activeTab === "all") return true;
+    return u.registrationType?.toLowerCase() === activeTab;
+  });
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // =============================
-  // LOAD CURRENT USER
-  // =============================
   useEffect(() => {
     API.get("/user/me")
       .then((res) => setUser(res.data))
       .catch(() => (window.location.href = "/"));
   }, []);
 
-  // =============================
-  // LOAD USERS
-  // =============================
   useEffect(() => {
     if (!user) return;
-
     API.get("/user")
       .then((res) => setUsers(res.data || []))
       .catch(() => setUsers([]));
   }, [user]);
 
-  // =============================
-  // LOAD CHATS
-  // =============================
   useEffect(() => {
     if (!user) return;
-
     API.get("/chats")
       .then((res) => setChats(res.data || []))
       .catch(() => setChats([]));
   }, [user]);
 
-  // =============================
-  // SOCKET INIT
-  // =============================
   useEffect(() => {
     if (!user) return;
 
@@ -85,9 +84,6 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
     return () => socket.disconnect();
   }, [user]);
 
-  // =============================
-  // START CHAT
-  // =============================
   const handleStartChat = async (otherUserId) => {
     try {
       const res = await API.post(`/chats/user/${otherUserId}`);
@@ -106,9 +102,6 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
     }
   };
 
-  // =============================
-  // LOAD MESSAGES
-  // =============================
   const loadMessages = async (chatId) => {
     try {
       setLoadingMessages(true);
@@ -123,9 +116,6 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
     }
   };
 
-  // =============================
-  // SEND MESSAGE
-  // =============================
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedChat) return;
@@ -159,7 +149,6 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
     }
   };
 
-  // Get selected user name
   const selectedChatData = chats.find((c) => c._id === selectedChat);
   const selectedUser =
     selectedChatData?.participants?.find(
@@ -181,45 +170,46 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
         onClose={() => toggleSidebar && toggleSidebar(false)}
       />
 
-      <main className="main" style={{ padding: "20px" }}>
-         <div className="topbar">
-          <button
-            className="menu-btn"
-            onClick={() => toggleSidebar && toggleSidebar(true)}
-          >
-            ☰
-          </button>
-        </div>
-        <div
-          className="card"
-          style={{
-            width: "100%",
-            height: "calc(100vh - 100px)",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          {/* ================= USER LIST ================= */}
+      <main className="main" style={{ padding: "20px", width: "100%" }}>
+        <div className="card" style={{ width: "100%", height: "calc(100vh - 100px)", display: "flex", flexDirection: "column" }}>
+          
           {!selectedChat ? (
             <>
-              <div
-                style={{
-                  padding: "16px",
-                  fontWeight: "bold",
-                  borderBottom: "1px solid #eee",
-                }}
-              >
+              <div style={{ padding: "16px", fontWeight: "bold", borderBottom: "1px solid #eee" }}>
                 Choose a user to start chatting
               </div>
 
+              {/* TABS */}
+              <div style={{ display: "flex", borderBottom: "1px solid #eee", background: "#fff" }}>
+                {["all", "teacher", "student", "admin"].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    style={{
+                      flex: 1,
+                      padding: "12px",
+                      border: "none",
+                      cursor: "pointer",
+                      background: activeTab === tab ? "var(--accent-1)" : "transparent",
+                      color: activeTab === tab ? "#fff" : "#333",
+                      fontWeight: "600",
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              {/* USER LIST */}
               <div style={{ flex: 1, overflowY: "auto" }}>
-                {users.length === 0 && (
+                {filteredUsers.length === 0 && (
                   <div style={{ padding: "16px", color: "#777" }}>
-                    No users found
+                    No users found.
                   </div>
                 )}
 
-                {users.map((u) => (
+                {filteredUsers.map((u) => (
                   <div
                     key={u._id}
                     onClick={() => handleStartChat(u._id)}
@@ -227,129 +217,131 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
                       padding: "14px 16px",
                       cursor: "pointer",
                       borderBottom: "1px solid #f1f1f1",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
                     }}
                   >
-                    {u.fullName || u.email}
+                    {getProfileUrl(u) ? (
+                      <img
+                        src={getProfileUrl(u)}
+                        alt="profile"
+                        style={{
+                          width: "38px",
+                          height: "38px",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "38px",
+                          height: "38px",
+                          borderRadius: "50%",
+                          background: "var(--accent-1)",
+                          color: "#fff",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {getInitial(u.fullName || u.email)}
+                      </div>
+                    )}
+
+                    <span>{u.fullName || u.email}</span>
                   </div>
                 ))}
               </div>
             </>
           ) : (
             <>
-              {/* ================= CHAT HEADER ================= */}
-              <div
-                style={{
-                  padding: "14px 20px",
-                  borderBottom: "1px solid #eee",
-                  fontWeight: "bold",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  background: "#fff",
-                }}
-              >
+              <div style={{ padding: "14px 20px", borderBottom: "1px solid #eee", fontWeight: "bold", display: "flex", alignItems: "center", gap: "12px", background: "#fff" }}>
                 <button
                   onClick={() => {
                     setSelectedChat(null);
                     setMessages([]);
                   }}
-                  style={{
-                    border: "none",
-                    background: "none",
-                    cursor: "pointer",
-                    fontSize: "20px",
-                  }}
+                  style={{ border: "none", background: "none", cursor: "pointer", fontSize: "20px" }}
                 >
                   ←
                 </button>
 
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: "16px" }}>
-                    {selectedUser?.fullName ||
-                      selectedUser?.email ||
-                      "Chat"}
-                  </span>
-                  <span
+                {getProfileUrl(selectedUser) ? (
+                  <img
+                    src={getProfileUrl(selectedUser)}
+                    alt="profile"
                     style={{
-                      fontSize: "12px",
-                      color: "#777",
+                      width: "38px",
+                      height: "38px",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: "38px",
+                      height: "38px",
+                      borderRadius: "50%",
+                      background: "var(--accent-1)",
+                      color: "#fff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: "600",
                     }}
                   >
-                    Active now
-                  </span>
-                </div>
+                    {getInitial(selectedUser?.fullName || selectedUser?.email)}
+                  </div>
+                )}
+
+                <span>{selectedUser?.fullName || selectedUser?.email}</span>
               </div>
 
-              {/* ================= MESSAGES ================= */}
-              <div
-                style={{
-                  flex: 1,
-                  overflowY: "auto",
-                  padding: "16px",
-                }}
-              >
-                {loadingMessages ? (
-                  <div>Loading messages...</div>
-                ) : (
-                  messages.map((msg) => (
+              <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+                {messages.map((msg) => (
+                  <div
+                    key={msg._id}
+                    style={{
+                      display: "flex",
+                      justifyContent:
+                        msg.sender._id === user._id
+                          ? "flex-end"
+                          : "flex-start",
+                      marginBottom: "10px",
+                    }}
+                  >
                     <div
-                      key={msg._id}
                       style={{
-                        display: "flex",
-                        justifyContent:
+                        padding: "10px 14px",
+                        borderRadius: "10px",
+                        background:
                           msg.sender._id === user._id
-                            ? "flex-end"
-                            : "flex-start",
-                        marginBottom: "10px",
+                            ? "var(--accent-1)"
+                            : "#f1f1f1",
+                        color:
+                          msg.sender._id === user._id
+                            ? "#fff"
+                            : "#000",
+                        maxWidth: "60%",
+                        wordBreak: "break-word",
                       }}
                     >
-                      <div
-                        style={{
-                          padding: "10px 14px",
-                          borderRadius: "10px",
-                          background:
-                            msg.sender._id === user._id
-                              ? "var(--accent-1)"
-                              : "#f1f1f1",
-                          color:
-                            msg.sender._id === user._id
-                              ? "#fff"
-                              : "#000",
-                          maxWidth: "60%",
-                          wordBreak: "break-word",
-                        }}
-                      >
-                        {msg.content}
-                      </div>
+                      {msg.content}
                     </div>
-                  ))
-                )}
+                  </div>
+                ))}
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* ================= MESSAGE INPUT ================= */}
-              <form
-                onSubmit={handleSendMessage}
-                style={{
-                  padding: "14px",
-                  borderTop: "1px solid #eee",
-                  background: "#fff",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    background: "#f0f2f5",
-                    borderRadius: "30px",
-                    padding: "8px 14px",
-                  }}
-                >
+              <form onSubmit={handleSendMessage} style={{ padding: "14px", borderTop: "1px solid #eee", background: "#fff" }}>
+                <div style={{ display: "flex", alignItems: "center", background: "#f0f2f5", borderRadius: "30px", padding: "8px 14px" }}>
                   <textarea
                     value={newMessage}
-                    onChange={(e) =>
-                      setNewMessage(e.target.value)
-                    }
+                    onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Type a message..."
                     rows={1}
@@ -360,7 +352,6 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
                       resize: "none",
                       outline: "none",
                       fontSize: "15px",
-                      maxHeight: "120px",
                     }}
                   />
 

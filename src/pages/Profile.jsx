@@ -53,14 +53,7 @@ export default function Profile({ isSidebarOpen, toggleSidebar }) {
   onClose={() => toggleSidebar && toggleSidebar(false)}
 />
       <main className="main" style={{ width: "100%" }}>
-                <div className="topbar">
-          <button
-            className="menu-btn"
-            onClick={() => toggleSidebar && toggleSidebar(true)}
-          >
-            ☰
-          </button>
-        </div>
+        
         <div className="hero">
           <div className="lead">
             <h2>My Profile</h2>

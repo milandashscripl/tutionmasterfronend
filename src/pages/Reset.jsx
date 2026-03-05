@@ -29,6 +29,7 @@ export default function Reset() {
   };
 
   return (
+     <div className="auth-layout">
     <div className="auth-page">
       <div className="card auth-card">
         <h2>Reset password</h2>
@@ -49,6 +50,7 @@ export default function Reset() {
           <button type="submit" disabled={loading}>{loading ? "Resetting..." : "Reset Password"}</button>
         </form>
       </div>
+    </div>
     </div>
   );
 }

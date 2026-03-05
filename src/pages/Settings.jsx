@@ -116,14 +116,7 @@ export default function Settings({ isSidebarOpen, toggleSidebar }) {
   onClose={() => toggleSidebar && toggleSidebar(false)}
 />
       <main className="main" style={{ width: "100%" }}>
-                <div className="topbar">
-          <button
-            className="menu-btn"
-            onClick={() => toggleSidebar && toggleSidebar(true)}
-          >
-            ☰
-          </button>
-        </div> 
+            
         <div className="hero">
           <div className="lead">
             <h2>Settings</h2>

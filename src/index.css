@@ -468,6 +468,62 @@ button:disabled{
   gap:16px;
 }
 
+/* HEADER */
+
+.brand-header{
+  width:100%;
+  max-width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 15px;
+  box-sizing:border-box;
+  overflow:hidden;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+
+.brand h2{
+  font-size:18px;
+  white-space:nowrap;
+}
+
+/* HAMBURGER */
+
+.hamburger{
+  font-size:22px;
+  background:none;
+  border:none;
+  cursor:pointer;
+}
+
+/* PROFILE IMAGE */
+
+.brand-header img{
+  width:35px;
+  height:35px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+/* MOBILE */
+
+@media (max-width:768px){
+
+  .brand-header{
+    padding:10px;
+  }
+
+  .brand h2{
+    font-size:16px;
+  }
+
+}
 .top-nav{
   display:flex;
   align-items:center;
@@ -488,4 +544,97 @@ button:disabled{
   .brand-header{
     padding:16px 20px;
   }
+}
+
+.admin-container{
+display:flex;
+min-height:100vh;
+}
+
+.admin-sidebar{
+width:240px;
+background:#111827;
+color:white;
+padding:20px;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.admin-logo{
+margin-bottom:20px;
+}
+
+.admin-link{
+color:white;
+text-decoration:none;
+padding:10px;
+border-radius:6px;
+}
+
+.admin-link:hover{
+background:#374151;
+}
+
+.active{
+background:#4f46e5;
+}
+
+.admin-content{
+flex:1;
+padding:20px;
+overflow:auto;
+}
+
+.admin-table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+.admin-table th,
+.admin-table td{
+padding:10px;
+border:1px solid #ddd;
+text-align:left;
+}
+
+.table-box{
+margin-top:30px;
+}
+
+.chart-box{
+margin-bottom:30px;
+}
+
+.admin-tabs{
+  display:flex;
+  gap:10px;
+  margin:100px 0 0;
+}
+
+.admin-tabs button{
+  padding:10px 20px;
+  border:none;
+  background:#eee;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.admin-tabs button.active{
+  background:#4f46e5;
+  color:white;
+}
+
+.admin-tab-content{
+  width:100%;
+}
+
+.admin-search{
+  margin-bottom:15px;
+  padding:8px 12px;
+  width:280px;
+  border-radius:6px;
+  border:1px solid #ccc;
 }

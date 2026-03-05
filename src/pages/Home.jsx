@@ -104,14 +104,14 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
       />
 
       <main className="main">
-        <div className="topbar">
+        {/* <div className="topbar">
           <button
             className="menu-btn"
             onClick={() => toggleSidebar && toggleSidebar(true)}
           >
             ☰
           </button>
-        </div>
+        </div> */}
         <div className="hero">
           <div className="lead">
             <h2>Welcome back, {user.fullName.split(" ")[0]}</h2>

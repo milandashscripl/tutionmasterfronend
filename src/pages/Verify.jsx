@@ -30,6 +30,7 @@ export default function Verify() {
   };
 
   return (
+    <div className="auth-layout">
     <div className="auth-page">
       <CanvasBg />
       <div className="card auth-card">
@@ -58,6 +59,7 @@ export default function Verify() {
           Back to sign in
         </p>
       </div>
+    </div>
     </div>
   );
 }

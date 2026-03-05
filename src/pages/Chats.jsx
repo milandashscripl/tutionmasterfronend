@@ -171,6 +171,14 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
       />
 
       <main className="main" style={{ padding: "20px", width: "100%" }}>
+        <div className="topbar">
+          <button
+            className="menu-btn"
+            onClick={() => toggleSidebar && toggleSidebar(true)}
+          >
+            ☰
+          </button>
+        </div>
         <div className="card" style={{ width: "100%", height: "calc(100vh - 100px)", display: "flex", flexDirection: "column" }}>
           
           {!selectedChat ? (

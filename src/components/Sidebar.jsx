@@ -71,7 +71,7 @@ export default function Sidebar({ user, isOpen, onClose }) {
               if (onClose) onClose();
             }}
           >  
-          🙍  Logout
+          🙍 Logout
           </button>
         </div>
       </div>

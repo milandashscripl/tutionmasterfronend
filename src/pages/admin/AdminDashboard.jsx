@@ -2,11 +2,11 @@ import { useState } from "react";
 
 import StudentsTable from "./StudentsTable";
 import TeachersTable from "./TeachersTable";
-import RegistrationChart from "../../components/RegistrationChart";
+import AdminAnalyticsChart from "../../components/AdminAnalyticsChart";
 
 export default function AdminDashboard() {
 
-  const [activeTab, setActiveTab] = useState("students");
+  const [activeTab,setActiveTab] = useState("students");
 
   return (
 
@@ -14,38 +14,44 @@ export default function AdminDashboard() {
 
       <h2>Dashboard</h2>
 
-      <RegistrationChart />
+      <AdminAnalyticsChart/>
 
-      {/* TAB BUTTONS */}
+      {/* TABS */}
+
       <div className="admin-tabs">
 
         <button
-          className={activeTab === "students" ? "active" : ""}
-          onClick={() => setActiveTab("students")}
+          className={activeTab==="students"?"active":""}
+          onClick={()=>setActiveTab("students")}
         >
           Students
         </button>
 
         <button
-          className={activeTab === "teachers" ? "active" : ""}
-          onClick={() => setActiveTab("teachers")}
+          className={activeTab==="teachers"?"active":""}
+          onClick={()=>setActiveTab("teachers")}
         >
           Teachers
         </button>
 
       </div>
 
-      {/* TAB CONTENT */}
+      {/* ANIMATED TAB CONTENT */}
 
-      <div className="admin-tab-content">
+      <div className="admin-tab-wrapper">
 
-        {activeTab === "students" && <StudentsTable />}
+        <div className={`tab-panel ${activeTab==="students"?"show":"hide"}`}>
+          <StudentsTable/>
+        </div>
 
-        {activeTab === "teachers" && <TeachersTable />}
+        <div className={`tab-panel ${activeTab==="teachers"?"show":"hide"}`}>
+          <TeachersTable/>
+        </div>
 
       </div>
 
     </div>
 
   );
+
 }

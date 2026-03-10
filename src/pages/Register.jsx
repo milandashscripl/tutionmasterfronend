@@ -4,119 +4,154 @@ import API from "../api/api";
 import CanvasBg from "../components/CanvasBg";
 
 export default function Register() {
+
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    password: "",
-    aadhar: "",
-    addressText: "",
-    lat: "",
-    lng: "",
+    fullName:"",
+    email:"",
+    phone:"",
+    password:"",
+    aadhar:"",
+    registrationType:"",
+    gender:"",
+    age:"",
+    addressText:"",
+    lat:"",
+    lng:"",
+    standard:"",
+    board:"",
+    subjects:"",
+    teachingUpto:"",
+    distance:"",
   });
 
-  const [profilePic, setProfilePic] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [profilePic,setProfilePic] = useState(null);
+  const [preview,setPreview] = useState(null);
+  const [error,setError] = useState("");
+  const [loading,setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange=(e)=>{
+    setForm({...form,[e.target.name]:e.target.value});
+  }
 
-  const handleFile = (e) => {
-    const file = e.target.files[0];
+  const handleFile=(e)=>{
+    const file=e.target.files[0];
     setProfilePic(file);
-    if (file) setPreview(URL.createObjectURL(file));
-    else setPreview(null);
-  };
+    if(file) setPreview(URL.createObjectURL(file));
+  }
 
-  const handleRegister = async (e) => {
-    e?.preventDefault();
-    setError("");
-    if (!form.fullName || !form.email || form.password.length < 6 || !form.phone || !form.aadhar || !form.registrationType) {
-      return setError("Please fill required fields: name, email, phone, aadhar, registration type and password (6+ chars)");
+  const handleRegister=async(e)=>{
+    e.preventDefault();
+
+    if(!form.fullName || !form.email || !form.phone || !form.password || !form.registrationType){
+      return setError("Please fill required fields");
     }
-    setLoading(true);
-    try {
-      const data = new FormData();
-      Object.keys(form).forEach((key) => data.append(key, form[key]));
-      if (profilePic) data.append("profilePic", profilePic);
 
-      const res = await API.post("/auth/register", data, {
-        headers: { "Content-Type": "multipart/form-data" },
+    try{
+
+      const data=new FormData();
+
+      Object.keys(form).forEach(k=>{
+        data.append(k,form[k]);
       });
 
-      // backend responds with { message: 'OTP_SENT', phone }
-      if (res.data?.message === "OTP_SENT") {
-        navigate("/verify", { state: { phone: form.phone } });
-      } else {
-        setError("Unexpected response from server");
+      if(profilePic) data.append("profilePic",profilePic);
+
+      const res=await API.post("/auth/register",data,{
+        headers:{ "Content-Type":"multipart/form-data" }
+      });
+
+      if(res.data?.message==="OTP_SENT"){
+        navigate("/verify",{state:{phone:form.phone}});
       }
-    } catch (err) {
+
+    }catch(err){
       setError(err.response?.data?.message || "Registration failed");
-    } finally {
-      setLoading(false);
     }
-  };
 
-  return (
-    <div className="auth-layout">
-    <div className="auth-page">
-      <CanvasBg />
-      <div className="card auth-card">
-        <h2 style={{ marginBottom: 6 }}>Create Account</h2>
-      <p style={{ opacity: 0.9, marginTop: 0, marginBottom: 18 }}>
-        Join TuitionMaster — quick signup
-      </p>
+  }
 
-      <form onSubmit={handleRegister}>
-        <label style={{ textAlign: "left", display: "block", marginBottom: 6 }}>Full name</label>
-        <input name="fullName" placeholder="Your full name" value={form.fullName} onChange={handleChange} />
+  return(
 
-        <label style={{ textAlign: "left", display: "block", marginBottom: 6 }}>Email</label>
-        <input name="email" placeholder="you@example.com" value={form.email} onChange={handleChange} />
+<div className="auth-layout">
+<div className="auth-page">
 
-        <label style={{ textAlign: "left", display: "block", marginBottom: 6 }}>Phone</label>
-        <input name="phone" autoComplete="tel" placeholder="9876543210" value={form.phone} onChange={handleChange} />
+<CanvasBg/>
 
-        <label style={{ textAlign: "left", display: "block", marginBottom: 6 }}>Registration type</label>
-        <select name="registrationType" value={form.registrationType || ""} onChange={handleChange} style={{ width: "100%", padding: 12, borderRadius: 10, marginBottom: 12 }}>
-          <option value="">Select type</option>
-          <option value="student">Student</option>
-          <option value="teacher">Teacher</option>
-        </select>
+<div className="card auth-card">
 
-        <label style={{ textAlign: "left", display: "block", marginBottom: 6 }}>Aadhar</label>
-        <input name="aadhar" autoComplete="off" placeholder="Aadhar number" value={form.aadhar} onChange={handleChange} />
+<h2>Create Account</h2>
 
-        <label style={{ textAlign: "left", display: "block", marginBottom: 6 }}>Password</label>
-        <input type="password" name="password" autoComplete="new-password" placeholder="Choose a password" value={form.password} onChange={handleChange} />
+<form onSubmit={handleRegister}>
 
-        <label style={{ textAlign: "left", display: "block", marginBottom: 6 }}>Address (optional)</label>
-        <input name="addressText" placeholder="Address" value={form.addressText} onChange={handleChange} />
+<input name="fullName" placeholder="Full Name" onChange={handleChange}/>
+<input name="email" placeholder="Email" onChange={handleChange}/>
+<input name="phone" placeholder="Phone" onChange={handleChange}/>
 
-        <label style={{ textAlign: "left", display: "block", marginBottom: 6 }}>Profile picture (optional)</label>
-        <input type="file" accept="image/*" onChange={handleFile} />
+<select name="registrationType" onChange={handleChange}>
+<option value="">Select Type</option>
+<option value="student">Student</option>
+<option value="teacher">Teacher</option>
+</select>
 
-        {preview && (
-          <div style={{ marginBottom: 12 }}>
-           <img src={preview} alt="preview" className="preview-img" />
-          </div>
-        )}
+<input name="aadhar" placeholder="Aadhar Number" onChange={handleChange}/>
+<input type="password" name="password" placeholder="Password" onChange={handleChange}/>
 
-      {error && <div className="error-box">{error}</div>}
+<select name="gender" onChange={handleChange}>
+<option value="">Gender</option>
+<option>Male</option>
+<option>Female</option>
+</select>
 
-        <button type="submit" disabled={loading}>{loading ? "Creating..." : "Create Account"}</button>
-      </form>
+<input name="age" placeholder="Age" onChange={handleChange}/>
 
-        <p className="link" style={{ marginTop: 12 }} onClick={() => navigate("/")}>
-          Already have an account?
-        </p>
-      </div>
-    </div>
-    </div>
-  );
+<input name="addressText" placeholder="Address" onChange={handleChange}/>
+
+{/* STUDENT FIELDS */}
+
+{form.registrationType==="student" &&(
+
+<>
+
+<input name="standard" placeholder="Class / Standard" onChange={handleChange}/>
+<input name="board" placeholder="Board (CBSE / CHSE)" onChange={handleChange}/>
+<input name="subjects" placeholder="Subjects (Math, Physics etc)" onChange={handleChange}/>
+
+</>
+
+)}
+
+{/* TEACHER FIELDS */}
+
+{form.registrationType==="teacher" &&(
+
+<>
+
+<input name="teachingUpto" placeholder="Teaching ability" onChange={handleChange}/>
+<input name="subjects" placeholder="Subjects expert in" onChange={handleChange}/>
+<input name="distance" placeholder="Distance coverage (km)" onChange={handleChange}/>
+
+</>
+
+)}
+
+<input type="file" onChange={handleFile}/>
+
+{preview && <img src={preview} style={{width:80}}/>}
+
+<button type="submit">
+Register
+</button>
+
+{error && <p>{error}</p>}
+
+</form>
+
+</div>
+</div>
+</div>
+
+  )
+
 }

@@ -28,15 +28,45 @@ export default function TeachersTable(){
     fetchTeachers();
   },[]);
 
+
+  /* DELETE TEACHER */
+
+  const deleteTeacher = async (id)=>{
+
+    const confirmDelete = window.confirm("Delete this teacher?");
+
+    if(!confirmDelete) return;
+
+    try{
+
+      // ✅ correct API
+      await API.delete(`/admin/remove/${id}`);
+
+      setTeachers((prev)=>
+        prev.filter((t)=>t._id !== id)
+      );
+
+    }catch(err){
+      console.log(err);
+      alert("Failed to delete teacher");
+    }
+
+  };
+
+
   const filteredTeachers = teachers.filter((t)=>{
+
     const value = search.toLowerCase();
+
     return (
-      t.fullName.toLowerCase().includes(value) ||
-      t.email.toLowerCase().includes(value) ||
-      t.phone.includes(value) ||
-      t.aadhar.includes(value)
+      t.fullName?.toLowerCase().includes(value) ||
+      t.email?.toLowerCase().includes(value) ||
+      t.phone?.includes(value) ||
+      t.aadhar?.includes(value)
     );
+
   });
+
 
   return(
 
@@ -60,6 +90,7 @@ export default function TeachersTable(){
             <th>Email</th>
             <th>Phone</th>
             <th>Aadhar</th>
+            <th>Action</th>
           </tr>
         </thead>
 
@@ -71,6 +102,16 @@ export default function TeachersTable(){
             <td>{t.email}</td>
             <td>{t.phone}</td>
             <td>{t.aadhar}</td>
+
+            <td>
+              <button
+                className="admin-delete-btn"
+                onClick={()=>deleteTeacher(t._id)}
+              >
+                Remove
+              </button>
+            </td>
+
           </tr>
         ))}
 

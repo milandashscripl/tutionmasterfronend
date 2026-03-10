@@ -10,19 +10,25 @@ export default function AdminRoute({ children }) {
   useEffect(() => {
 
     const checkAdmin = async () => {
+
       try {
 
         const res = await API.get("/user/me");
 
-        if (res.data.registrationType === "admin") {
+        const user = res.data;
+
+        if (
+          user.registrationType === "admin" &&
+          user.isApproved === true
+        ) {
           setIsAdmin(true);
         }
 
       } catch (err) {
-        console.log("Admin check failed");
-      } finally {
-        setLoading(false);
+        console.log("Admin check failed", err);
       }
+
+      setLoading(false);
     };
 
     checkAdmin();
@@ -30,11 +36,11 @@ export default function AdminRoute({ children }) {
   }, []);
 
   if (loading) {
-    return <div style={{padding:"40px"}}>Loading...</div>;
+    return <div style={{ padding: "40px" }}>Checking Admin Access...</div>;
   }
 
   if (!isAdmin) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;

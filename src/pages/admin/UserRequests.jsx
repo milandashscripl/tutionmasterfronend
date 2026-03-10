@@ -6,17 +6,12 @@ export default function UserRequests() {
   const [users, setUsers] = useState([]);
 
   const fetchPending = async () => {
-
     try {
-
       const res = await API.get("/admin/pending");
-
       setUsers(res.data);
-
     } catch (err) {
       console.log(err);
     }
-
   };
 
   useEffect(() => {
@@ -24,17 +19,21 @@ export default function UserRequests() {
   }, []);
 
   const approveUser = async (id) => {
-
     try {
-
       await API.put(`/admin/approve/${id}`);
-
       fetchPending();
-
     } catch (err) {
       console.log(err);
     }
+  };
 
+  const removeUser = async (id) => {
+    try {
+      await API.delete(`/admin/remove/${id}`);
+      fetchPending();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -67,9 +66,21 @@ export default function UserRequests() {
               <td>{u.registrationType}</td>
 
               <td>
-                <button onClick={() => approveUser(u._id)}>
+
+                <button
+                  onClick={() => approveUser(u._id)}
+                  style={{ marginRight: "10px", background: "green", color: "white" }}
+                >
                   Approve
                 </button>
+
+                <button
+                  onClick={() => removeUser(u._id)}
+                  style={{ background: "red", color: "white" }}
+                >
+                  Remove
+                </button>
+
               </td>
 
             </tr>

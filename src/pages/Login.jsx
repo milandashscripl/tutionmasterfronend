@@ -33,13 +33,13 @@ export default function Login() {
 
       const user = res.data.user;   // 👈 get user data
       const token = res.data.token;
-
+      console.log("Loging");
       localStorage.setItem("token", token);
 
       console.log("Logged user:", user);
 
       // 🔥 ADMIN REDIRECT
-      if (user.registrationType === "admin") {
+      if (user.registrationType.toLowerCase() === "admin") {
         navigate("/admin");
       }
 
@@ -54,7 +54,7 @@ export default function Login() {
       }
 
       else {
-        navigate("/dashboard");
+        navigate("/auth-error", { state: { message: "Unknown user type" } });
       }
 
     } catch (err) {

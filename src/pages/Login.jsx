@@ -4,7 +4,6 @@ import API from "../api/api";
 import CanvasBg from "../components/CanvasBg";
 
 export default function Login() {
-
   const navigate = useNavigate();
 
   const [emailOrPhone, setEmailOrPhone] = useState("");
@@ -13,9 +12,7 @@ export default function Login() {
   const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
-
     e.preventDefault();
-
     setError("");
 
     if (!emailOrPhone || !password) {
@@ -25,69 +22,60 @@ export default function Login() {
     setLoading(true);
 
     try {
-
       const res = await API.post("/auth/login", {
         emailOrPhone,
-        password
+        password,
       });
 
-      const user = res.data.user;   // 👈 get user data
+      const user = res.data.user; 
       const token = res.data.token;
-      console.log("Loging");
+
+      // 1. SAVE TOKEN
       localStorage.setItem("token", token);
+
+      // 2. 🔥 SAVE THEME SETTINGS TO LOCAL STORAGE
+      // This ensures the Dashboard sees the "Blue" theme immediately!
+      if (user.settings) {
+        localStorage.setItem("appTheme", user.settings.theme || "light");
+        localStorage.setItem("darkMode", user.settings.darkMode ? "true" : "false");
+      }
 
       console.log("Logged user:", user);
 
-      // 🔥 ADMIN REDIRECT
-      if (user.registrationType.toLowerCase() === "admin") {
+      // 3. REDIRECTS
+      const role = user.registrationType.toLowerCase();
+      
+      if (role === "admin") {
         navigate("/admin");
-      }
-
-      // STUDENT
-      else if (user.registrationType === "student") {
-        navigate("/dashboard");
-      }
-
-      // TEACHER
-      else if (user.registrationType === "teacher") {
-        navigate("/dashboard");
-      }
-
-      else {
+      } else if (role === "student" || role === "teacher") {
+        // We use window.location.href instead of navigate for a "hard refresh" 
+        // to ensure the theme CSS variables are injected into the DOM on load
+        window.location.href = "/dashboard";
+      } else {
         navigate("/auth-error", { state: { message: "Unknown user type" } });
       }
 
     } catch (err) {
-
       setError(err.response?.data?.message || "Login failed");
-
     } finally {
       setLoading(false);
     }
   };
 
   return (
-
     <div className="auth-layout">
-
       <div className="auth-page">
-
         <CanvasBg />
-
         <div className="card auth-card" role="main">
-
           <h2 style={{ marginBottom: 6 }}>Welcome Back</h2>
-
           <p style={{ opacity: 0.9, marginTop: 0, marginBottom: 18 }}>
             Sign in to continue to TuitionMaster
           </p>
 
           <form onSubmit={handleLogin}>
-
             <label style={{ textAlign: "left", display: "block", marginBottom: 6 }}>
               Email or Phone
             </label>
-
             <input
               placeholder="you@example.com or 9876543210"
               value={emailOrPhone}
@@ -97,7 +85,6 @@ export default function Login() {
             <label style={{ textAlign: "left", display: "block", marginBottom: 6 }}>
               Password
             </label>
-
             <input
               name="password"
               type="password"
@@ -112,11 +99,9 @@ export default function Login() {
             <button type="submit" disabled={loading}>
               {loading ? "Signing in..." : "Sign in"}
             </button>
-
           </form>
 
           <p style={{ display: "flex", gap: 12, marginTop: 12 }}>
-
             <span
               className="link"
               style={{ cursor: "pointer" }}
@@ -124,7 +109,6 @@ export default function Login() {
             >
               Create an account
             </span>
-
             <span
               className="link"
               style={{ cursor: "pointer" }}
@@ -132,13 +116,9 @@ export default function Login() {
             >
               Forgot password?
             </span>
-
           </p>
-
         </div>
-
       </div>
-
     </div>
   );
 }

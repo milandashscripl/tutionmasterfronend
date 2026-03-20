@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import API from "../api/api";
 import Sidebar from "../components/Sidebar";
 
@@ -7,6 +7,7 @@ export default function Profile({ isSidebarOpen, toggleSidebar }) {
   const [user, setUser] = useState(null);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
+  const fileRef = useRef();
 
   useEffect(() => {
 
@@ -23,11 +24,33 @@ export default function Profile({ isSidebarOpen, toggleSidebar }) {
     });
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setForm({
+      ...form,
+      profilePic: file
+    });
+  };
+
   const handleSave = async () => {
 
     try {
 
-      const res = await API.put("/user/me", form);
+      const data = new FormData();
+
+      Object.keys(form).forEach(key => {
+
+        data.append(key, form[key]);
+
+      });
+
+      const res = await API.put("/user/me", data, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
 
       setUser(res.data);
       setEditing(false);
@@ -46,8 +69,6 @@ export default function Profile({ isSidebarOpen, toggleSidebar }) {
 
     <div className="layout">
 
-      {/* Sidebar */}
-
       <Sidebar
         user={user}
         isOpen={isSidebarOpen}
@@ -60,9 +81,71 @@ export default function Profile({ isSidebarOpen, toggleSidebar }) {
 
           <h2>Profile</h2>
 
+          {/* PROFILE IMAGE */}
+
+          <div style={{ marginBottom: 20, textAlign: "center" }}>
+
+            {user.profilePic?.url ? (
+
+              <img
+                src={user.profilePic.url}
+                alt="profile"
+                style={{
+                  width: 120,
+                  height: 120,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "3px solid #6366f1"
+                }}
+              />
+
+            ) : (
+
+              <div
+                style={{
+                  width: 120,
+                  height: 120,
+                  borderRadius: "50%",
+                  background: "#6366f1",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 40,
+                  margin: "auto"
+                }}
+              >
+                {user.fullName?.[0]?.toUpperCase()}
+              </div>
+
+            )}
+
+            {editing && (
+
+              <div style={{ marginTop: 10 }}>
+
+                <button onClick={() => fileRef.current.click()}>
+                  Change Photo
+                </button>
+
+                <input
+                  type="file"
+                  ref={fileRef}
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleFileChange}
+                />
+
+              </div>
+
+            )}
+
+          </div>
+
           {!editing ? (
 
             <>
+
               <p>Name : {user.fullName}</p>
               <p>Email : {user.email}</p>
               <p>Phone : {user.phone}</p>
@@ -106,6 +189,7 @@ export default function Profile({ isSidebarOpen, toggleSidebar }) {
           ) : (
 
             <>
+
               <input
                 name="fullName"
                 placeholder="Full Name"
@@ -127,7 +211,7 @@ export default function Profile({ isSidebarOpen, toggleSidebar }) {
                 onChange={handleChange}
               />
 
-              {/* STUDENT EDIT FIELDS */}
+              {/* STUDENT EDIT */}
 
               {user.registrationType === "student" && (
 
@@ -156,7 +240,7 @@ export default function Profile({ isSidebarOpen, toggleSidebar }) {
 
               )}
 
-              {/* TEACHER EDIT FIELDS */}
+              {/* TEACHER EDIT */}
 
               {user.registrationType === "teacher" && (
 

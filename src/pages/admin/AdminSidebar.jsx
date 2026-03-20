@@ -8,7 +8,6 @@ export default function AdminSidebar() {
   const menus = [
     { name: "Dashboard", path: "/admin" },
     { name: "User Requests", path: "/admin/user-requests" },
-    { name: "Accepted Requests", path: "/admin/accepted-requests" },
     { name: "App Settings", path: "/admin/app-settings" } // fixed
   ];
 

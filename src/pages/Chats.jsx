@@ -31,10 +31,15 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
     return u?.profilePic?.url || u?.profilePic || null;
   };
 
-  const filteredUsers = users.filter((u) => {
-    if (activeTab === "all") return true;
-    return u.registrationType?.toLowerCase() === activeTab;
-  });
+const filteredUsers = users.filter((u) => {
+
+  // Only approved + verified users
+  if (!u.isApproved || !u.isVerified) return false;
+
+  if (activeTab === "all") return true;
+
+  return u.registrationType?.toLowerCase() === activeTab;
+});
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -84,23 +89,33 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
     return () => socket.disconnect();
   }, [user]);
 
-  const handleStartChat = async (otherUserId) => {
-    try {
-      const res = await API.post(`/chats/user/${otherUserId}`);
-      const chat = res.data;
+ const handleStartChat = async (otherUserId) => {
 
-      setSelectedChat(chat._id);
+  const targetUser = users.find(u => u._id === otherUserId);
 
-      setChats((prev) => {
-        if (prev.some((c) => c._id === chat._id)) return prev;
-        return [chat, ...prev];
-      });
+  if (!targetUser?.isApproved || !targetUser?.isVerified) {
+    alert("User is not approved by admin yet.");
+    return;
+  }
 
-      await loadMessages(chat._id);
-    } catch {
-      alert("Failed to start chat");
-    }
-  };
+  try {
+
+    const res = await API.post(`/chats/user/${otherUserId}`);
+    const chat = res.data;
+
+    setSelectedChat(chat._id);
+
+    setChats((prev) => {
+      if (prev.some((c) => c._id === chat._id)) return prev;
+      return [chat, ...prev];
+    });
+
+    await loadMessages(chat._id);
+
+  } catch {
+    alert("Failed to start chat");
+  }
+};
 
   const loadMessages = async (chatId) => {
     try {
@@ -251,7 +266,23 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
                       </div>
                     )}
 
-                    <span>{u.fullName || u.email}</span>
+                   <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
+
+<span>{u.fullName || u.email}</span>
+
+{u.isVerified && u.isApproved && (
+  <span style={{
+    fontSize:"11px",
+    background:"#22c55e",
+    color:"#fff",
+    padding:"2px 6px",
+    borderRadius:"4px"
+  }}>
+    ✓ Approved
+  </span>
+)}
+
+</div>
                   </div>
                 ))}
               </div>

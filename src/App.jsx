@@ -19,8 +19,7 @@ import AdminRoute from "./components/AdminRoute";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserRequests from "./pages/admin/UserRequests";
-import AcceptedRequests from "./pages/admin/AcceptedRequests";
-import AppSettings from "./pages/admin/AppSettings";
+import AppSettings from "./pages/admin/AdminSettings";
 
 export default function App() {
 
@@ -48,6 +47,7 @@ export default function App() {
         <Routes>
 
           {/* AUTH ROUTES */}
+
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify" element={<Verify />} />
@@ -55,6 +55,7 @@ export default function App() {
           <Route path="/reset" element={<Reset />} />
 
           {/* USER PANEL */}
+
           <Route
             path="/dashboard"
             element={<Dashboard isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
@@ -93,7 +94,6 @@ export default function App() {
 
             <Route index element={<AdminDashboard />} />
             <Route path="user-requests" element={<UserRequests />} />
-            <Route path="accepted-requests" element={<AcceptedRequests />} />
             <Route path="app-settings" element={<AppSettings />} />
 
           </Route>
@@ -108,9 +108,7 @@ export default function App() {
 }
 
 
-/* ===============================
-   HEADER COMPONENT
-================================ */
+/* ================= HEADER COMPONENT ================= */
 
 function HeaderComp({ toggleSidebar }) {
 

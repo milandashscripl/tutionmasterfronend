@@ -12,9 +12,12 @@ export default function TeachersTable(){
 
       const res = await API.get("/admin/users");
 
-      const teachers = res.data.filter(
-        (u)=>u.registrationType === "teacher"
-      );
+const teachers = res.data.filter(
+(u)=>
+u.registrationType === "teacher" &&
+u.isVerified === true &&
+u.isApproved === true
+);
 
       setTeachers(teachers);
 

@@ -15,7 +15,10 @@ const fetchStudents = async()=>{
 const res = await API.get("/admin/users");
 
 const students = res.data.filter(
-(u)=>u.registrationType==="student"
+(u)=>
+u.registrationType==="student" &&
+u.isVerified === true &&
+u.isApproved === true
 );
 
 setStudents(students);

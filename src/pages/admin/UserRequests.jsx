@@ -3,96 +3,181 @@ import API from "../../api/api";
 
 export default function UserRequests() {
 
-  const [users, setUsers] = useState([]);
+const [users,setUsers] = useState([]);
+const [loading,setLoading] = useState(true);
 
-  const fetchPending = async () => {
-    try {
-      const res = await API.get("/admin/pending");
-      setUsers(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
-  useEffect(() => {
-    fetchPending();
-  }, []);
+/* FETCH PENDING USERS */
 
-  const approveUser = async (id) => {
-    try {
-      await API.put(`/admin/approve/${id}`);
-      fetchPending();
-    } catch (err) {
-      console.log(err);
-    }
-  };
+const fetchPending = async ()=>{
 
-  const removeUser = async (id) => {
-    try {
-      await API.delete(`/admin/remove/${id}`);
-      fetchPending();
-    } catch (err) {
-      console.log(err);
-    }
-  };
+try{
 
-  return (
+const res = await API.get("/admin/pending");
 
-    <div className="admin-page">
+setUsers(res.data);
 
-      <h2>Pending User Requests</h2>
+}catch(err){
 
-      <table className="admin-table">
+console.log(err);
+alert("Failed to load pending users");
 
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Type</th>
-            <th>Action</th>
-          </tr>
-        </thead>
+}
 
-        <tbody>
+setLoading(false);
 
-          {users.map((u) => (
+};
 
-            <tr key={u._id}>
 
-              <td>{u.fullName}</td>
-              <td>{u.email}</td>
-              <td>{u.phone}</td>
-              <td>{u.registrationType}</td>
+useEffect(()=>{
+fetchPending();
+},[]);
 
-              <td>
 
-                <button
-                  onClick={() => approveUser(u._id)}
-                  style={{ marginRight: "10px", background: "green", color: "white" }}
-                >
-                  Approve
-                </button>
+/* APPROVE USER */
 
-                <button
-                  onClick={() => removeUser(u._id)}
-                  style={{ background: "red", color: "white" }}
-                >
-                  Remove
-                </button>
+const approveUser = async(id)=>{
 
-              </td>
+const confirmApprove = window.confirm("Approve this user?");
 
-            </tr>
+if(!confirmApprove) return;
 
-          ))}
+try{
 
-        </tbody>
+await API.put(`/admin/approve/${id}`);
 
-      </table>
+setUsers(prev => prev.filter(u => u._id !== id));
 
-    </div>
+}catch(err){
 
-  );
+console.log(err);
+alert("Failed to approve user");
+
+}
+
+};
+
+
+/* REMOVE USER */
+
+const removeUser = async(id)=>{
+
+const confirmDelete = window.confirm("Remove this user?");
+
+if(!confirmDelete) return;
+
+try{
+
+await API.delete(`/admin/remove/${id}`);
+
+setUsers(prev => prev.filter(u => u._id !== id));
+
+}catch(err){
+
+console.log(err);
+alert("Failed to remove user");
+
+}
+
+};
+
+
+/* LOADING STATE */
+
+if(loading){
+return <div className="admin-page"><h3>Loading requests...</h3></div>;
+}
+
+
+return(
+
+<div className="admin-page">
+
+<h2>Pending User Requests</h2>
+
+{users.length === 0 ? (
+
+<p>No pending requests</p>
+
+) : (
+
+<table className="admin-table">
+
+<thead>
+
+<tr>
+
+<th>Name</th>
+<th>Email</th>
+<th>Phone</th>
+<th>Aadhar</th>
+<th>Type</th>
+<th>Registered</th>
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{users.map((u)=>(
+
+<tr key={u._id}>
+
+<td>{u.fullName}</td>
+<td>{u.email}</td>
+<td>{u.phone}</td>
+<td>{u.aadhar}</td>
+<td>{u.registrationType}</td>
+
+<td>
+{new Date(u.createdAt).toLocaleDateString()}
+</td>
+
+<td>
+
+<button
+onClick={()=>approveUser(u._id)}
+style={{
+marginRight:"10px",
+background:"green",
+color:"white",
+border:"none",
+padding:"6px 12px",
+cursor:"pointer"
+}}
+>
+Approve
+</button>
+
+<button
+onClick={()=>removeUser(u._id)}
+style={{
+background:"red",
+color:"white",
+border:"none",
+padding:"6px 12px",
+cursor:"pointer"
+}}
+>
+Remove
+</button>
+
+</td>
+
+</tr>
+
+))}
+
+</tbody>
+
+</table>
+
+)}
+
+</div>
+
+);
 
 }

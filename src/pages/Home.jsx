@@ -204,4 +204,4 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
       </main>
     </div>
   );
-}
+}    

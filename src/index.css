@@ -1238,3 +1238,39 @@ cursor:pointer;
     padding: 0 20px;
   }
 }  
+
+
+/* =========================================
+   MOBILE AUTH FIXES
+========================================= */
+@media (max-width: 480px) {
+  .auth-layout {
+    padding: 10px; /* Less padding on outside */
+    align-items: flex-start; /* Start from top so keyboard doesn't hide inputs */
+    padding-top: 40px;
+  }
+
+  .auth-card {
+    padding: 24px 16px; /* Slimmer internal padding */
+    border-radius: 12px;
+  }
+
+  .auth-card h2 {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+
+  /* Make inputs easier to tap on mobile */
+  input, select, button {
+    font-size: 16px !important; /* Prevents iOS auto-zoom on focus */
+    padding: 14px !important;
+  }
+
+  /* Fix for the "Create Account / Forgot Password" links */
+  .auth-card p {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px !important;
+    font-size: 14px;
+  }
+}

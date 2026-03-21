@@ -7,9 +7,13 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
   const [matchedTeachers, setMatchedTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // --- ADDED RATING STATES ---
+  // --- RATING & REVIEW STATES ---
   const [showRatingModal, setShowRatingModal] = useState(false);
+  const [showReviewsModal, setShowReviewsModal] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  
   const [ratingValue, setRatingValue] = useState(5);
   const [comment, setComment] = useState("");
 
@@ -40,7 +44,22 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
     loadData();
   }, []);
 
-  // --- ADDED RATING SUBMIT FUNCTION ---
+  // --- FETCH REVIEWS ---
+  const handleViewReviews = async (teacher) => {
+    setSelectedTeacher(teacher);
+    setLoadingReviews(true);
+    setShowReviewsModal(true);
+    try {
+      const res = await API.get(`/user/reviews/${teacher._id}`);
+      setReviews(res.data);
+    } catch (err) {
+      alert("Could not load reviews");
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  // --- SUBMIT RATING ---
   const handleRateSubmit = async () => {
     try {
       await API.post("/user/rate", {
@@ -51,7 +70,7 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
       alert("Rating submitted successfully!");
       setShowRatingModal(false);
       setComment("");
-      // Refresh the matches to update the stars on the UI
+      // Refresh matches to update the stars on UI
       const matchRes = await API.get("/user/matches");
       setMatchedTeachers(matchRes.data);
     } catch (err) {
@@ -153,6 +172,11 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
 
                     <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
                       <button 
+                        onClick={() => handleViewReviews(teacher)} 
+                        style={{ background: "#f3f4f6", border: "1px solid #ddd", color: "#333", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>
+                        Reviews
+                      </button>
+                      <button 
                         onClick={() => { setSelectedTeacher(teacher); setShowRatingModal(true); }}
                         style={{ background: "transparent", border: "1px solid var(--muted)", color: "var(--muted)", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>
                         Rate
@@ -167,9 +191,54 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
           </div>
         )}
 
+        {/* --- REVIEWS MODAL --- */}
+        {showReviewsModal && (
+          <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.6)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1100, padding: "20px" }}>
+            <div className="card" style={{ width: "100%", maxWidth: "450px", maxHeight: "85vh", overflowY: "auto", background: "white", borderRadius: "12px", padding: "20px", position: "relative" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px", borderBottom: "1px solid #eee", paddingBottom: "10px" }}>
+                <h3 style={{ margin: 0, fontSize: "1.1rem" }}>{selectedTeacher?.fullName}'s Reviews</h3>
+                <button onClick={() => setShowReviewsModal(false)} style={{ border: "none", background: "none", fontSize: "22px", cursor: "pointer", color: "#666" }}>✕</button>
+              </div>
+
+              {loadingReviews ? (
+                <div style={{ textAlign: "center", padding: "20px" }}>Loading feedback...</div>
+              ) : reviews.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "40px 10px" }}>
+                  <p className="muted">No reviews yet. Be the first to rate!</p>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                   {/* Summary Header in Modal */}
+                   <div style={{ background: "#f9f9f9", padding: "12px", borderRadius: "10px", textAlign: "center", marginBottom: "10px" }}>
+                      <span style={{ fontSize: "24px", fontWeight: "bold", color: "#333" }}>{selectedTeacher?.teacherDetails?.averageRating}</span>
+                      <span style={{ color: "#f1c40f", marginLeft: "5px", fontSize: "20px" }}>★</span>
+                      <div className="muted" style={{ fontSize: "12px" }}>Based on {reviews.length} reviews</div>
+                   </div>
+
+                  {reviews.map((r) => (
+                    <div key={r._id} style={{ borderBottom: "1px solid #f1f1f1", paddingBottom: "12px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                           <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "var(--accent-1)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px" }}>
+                              {r.student?.fullName?.charAt(0) || "S"}
+                           </div>
+                           <span style={{ fontWeight: "600", fontSize: "13px" }}>{r.student?.fullName || "Verified Student"}</span>
+                        </div>
+                        <span style={{ color: "#f1c40f", fontSize: "12px" }}>{"★".repeat(r.rating)}</span>
+                      </div>
+                      <p style={{ fontSize: "13px", margin: "8px 0", color: "#444", lineHeight: "1.4" }}>{r.comment}</p>
+                      <small style={{ color: "#bbb", fontSize: "10px" }}>{new Date(r.createdAt).toLocaleDateString()}</small>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* --- RATING MODAL --- */}
         {showRatingModal && (
-          <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.6)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 }}>
+          <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.6)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1200 }}>
             <div className="card" style={{ width: "320px", padding: "25px", textAlign: "center", background: "white", borderRadius: "12px" }}>
               <h4 style={{ marginBottom: "10px", color: "#333" }}>Rate {selectedTeacher?.fullName}</h4>
               <div style={{ margin: "15px 0" }}>
@@ -204,4 +273,4 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
       </main>
     </div>
   );
-}    
+}

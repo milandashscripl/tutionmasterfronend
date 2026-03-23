@@ -20,6 +20,7 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserRequests from "./pages/admin/UserRequests";
 import AppSettings from "./pages/admin/AdminSettings";
+import LandingPage from "./pages/LandingPage";
 
 export default function App() {
 
@@ -47,8 +48,8 @@ export default function App() {
         <Routes>
 
           {/* AUTH ROUTES */}
-
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify" element={<Verify />} />
           <Route path="/forgot" element={<Forgot />} />
@@ -83,22 +84,23 @@ export default function App() {
 
           {/* ================= ADMIN PANEL ================= */}
 
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminLayout />
-              </AdminRoute>
-            }
-          >
+       {/* ... inside your Routes in App.js ... */}
 
-            <Route index element={<AdminDashboard />} />
-            <Route path="user-requests" element={<UserRequests />} />
-            <Route path="app-settings" element={<AppSettings />} />
+<Route
+  path="/admin"
+  element={
+    <AdminRoute>
+      {/* Pass the sidebar props here */}
+      <AdminLayout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+    </AdminRoute>
+  }
+>
+  <Route index element={<AdminDashboard />} />
+  <Route path="user-requests" element={<UserRequests />} />
+  <Route path="app-settings" element={<AppSettings />} />
+</Route>
 
-          </Route>
-
-        </Routes>
+        </Routes>  
 
       </div>
 

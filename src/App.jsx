@@ -23,6 +23,11 @@ import AppSettings from "./pages/admin/AdminSettings";
 import LandingPage from "./pages/LandingPage";
 
 export default function App() {
+  // NEW: State for global site settings
+  const [siteSettings, setSiteSettings] = useState({
+    logoUrl: "",
+    siteName: "TuitionMaster"
+  });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     try {
@@ -32,21 +37,32 @@ export default function App() {
     }
   });
 
+  // NEW: Fetch settings on app load
+  useEffect(() => {
+    API.get("/settings")
+      .then((res) => {
+        if (res.data) {
+          setSiteSettings({
+            logoUrl: res.data.logo?.url || "",
+            siteName: res.data.siteName || "TuitionMaster"
+          });
+        }
+      })
+      .catch((err) => console.error("Failed to load site settings", err));
+  }, []);
+
   const toggleSidebar = (val) => {
     if (typeof val === "boolean") setIsSidebarOpen(val);
     else setIsSidebarOpen((s) => !s);
   };
 
   return (
-
     <BrowserRouter>
-
       <div className="app-wrap">
-
-        <HeaderComp toggleSidebar={toggleSidebar} />
+        {/* Pass siteSettings to Header */}
+        <HeaderComp toggleSidebar={toggleSidebar} siteSettings={siteSettings} />
 
         <Routes>
-
           {/* AUTH ROUTES */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
@@ -56,74 +72,53 @@ export default function App() {
           <Route path="/reset" element={<Reset />} />
 
           {/* USER PANEL */}
-
           <Route
             path="/dashboard"
             element={<Dashboard isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
           />
-
           <Route
             path="/chats"
             element={<Chats isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
           />
-
           <Route
             path="/courses"
             element={<Courses isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
           />
-
           <Route
             path="/profile"
             element={<Profile isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
           />
-
           <Route
             path="/settings"
             element={<Settings isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
           />
 
-          {/* ================= ADMIN PANEL ================= */}
-
-       {/* ... inside your Routes in App.js ... */}
-
-<Route
-  path="/admin"
-  element={
-    <AdminRoute>
-      {/* Pass the sidebar props here */}
-      <AdminLayout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-    </AdminRoute>
-  }
->
-  <Route index element={<AdminDashboard />} />
-  <Route path="user-requests" element={<UserRequests />} />
-  <Route path="app-settings" element={<AppSettings />} />
-</Route>
-
-        </Routes>  
-
+          {/* ADMIN PANEL */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminLayout isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+              </AdminRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="user-requests" element={<UserRequests />} />
+            <Route path="app-settings" element={<AppSettings />} />
+          </Route>
+        </Routes>
       </div>
-
     </BrowserRouter>
-
   );
 }
 
-
 /* ================= HEADER COMPONENT ================= */
 
-function HeaderComp({ toggleSidebar }) {
-
+function HeaderComp({ toggleSidebar, siteSettings }) {
   const location = useLocation();
   const [user, setUser] = useState(null);
 
-  const hideHeader = [
-    "/",
-    "/register",
-    "/verify",
-    "/forgot",
-    "/reset"
-  ].includes(location.pathname);
+  const hideHeader = ["/", "/register", "/verify", "/forgot", "/reset"].includes(location.pathname);
 
   const isDashboard =
     location.pathname.startsWith("/dashboard") ||
@@ -134,42 +129,41 @@ function HeaderComp({ toggleSidebar }) {
     location.pathname.startsWith("/admin");
 
   useEffect(() => {
-
     if (isDashboard) {
-
       API.get("/user/me")
         .then((res) => setUser(res.data))
         .catch(() => {});
-
     }
-
   }, [isDashboard]);
 
   if (hideHeader) return null;
 
   return (
-
     <header className="brand-header">
-
-      <div className="brand">
-
-        <button
-          className="hamburger"
-          onClick={() => toggleSidebar()}
-        >
+      <div className="brand" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <button className="hamburger" onClick={() => toggleSidebar()}>
           ☰
         </button>
 
-        <h2>TuitionMaster</h2>
-
+        {/* LOGIC: Only show image if logoUrl exists. No text fallback. */}
+        {siteSettings.logoUrl && (
+          <img
+            src={siteSettings.logoUrl}
+            alt="App Logo"
+            style={{ 
+              height: "40px", 
+              width: "auto", 
+              objectFit: "contain",
+              cursor: "pointer" 
+            }}
+            onClick={() => window.location.href = "/dashboard"}
+          />
+        )}
       </div>
 
       {user && (
-
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-
           {user.profilePic?.url ? (
-
             <img
               src={user.profilePic.url}
               alt="profile"
@@ -177,12 +171,10 @@ function HeaderComp({ toggleSidebar }) {
                 width: 35,
                 height: 35,
                 borderRadius: "50%",
-                objectFit: "cover"
+                objectFit: "cover",
               }}
             />
-
           ) : (
-
             <div
               style={{
                 width: 35,
@@ -193,19 +185,14 @@ function HeaderComp({ toggleSidebar }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontWeight: "bold"
+                fontWeight: "bold",
               }}
             >
               {user.fullName?.[0]?.toUpperCase()}
             </div>
-
           )}
-
         </div>
-
       )}
-
     </header>
-
   );
 }

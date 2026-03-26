@@ -11,7 +11,7 @@ export default function LandingPage() {
   const slides = [
     {
       title: "Master Your Studies with TuitionMaster",
-      sub: "Connecting students with expert tutors for personalized learning in West Bengal.",
+      sub: "Connecting students with expert tutors for personalized learning in Western Odisha.",
       img: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1920&q=80"
     },
     {
@@ -112,7 +112,7 @@ export default function LandingPage() {
           <div className="about-grid">
             <div className="about-text">
               <span className="badge">Our Story</span>
-              <h2>Empowering Education in West Bengal</h2>
+              <h2>Empowering Education in Western Odisha</h2>
               <p>TuitionMaster was born from a simple observation: students struggle to find quality mentors nearby, while talented educators lack a platform to reach them.</p>
               <p>Our mission is to ensure every student has access to the academic guidance they deserve through direct and verified connections.</p>
             </div>
@@ -178,7 +178,7 @@ export default function LandingPage() {
           <div className="contact-info">
             <h2>Get In Touch</h2>
             <p>Have questions? Our team is here to help you navigate your journey.</p>
-            <div className="info-item"><strong>📍 Location:</strong> West Bengal, India</div>
+            <div className="info-item"><strong>📍 Location:</strong> Western Odisha, India</div>
             <div className="info-item"><strong>📧 Email:</strong> support@tuitionmaster.com</div>
           </div>
           <form className="contact-form" onSubmit={(e) => e.preventDefault()}>

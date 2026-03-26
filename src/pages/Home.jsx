@@ -6,6 +6,7 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
   const [user, setUser] = useState(null);
   const [matchedTeachers, setMatchedTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewType, setViewType] = useState("list"); // 'list' or 'grid'
 
   // --- RATING & REVIEW STATES ---
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -44,7 +45,6 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
     loadData();
   }, []);
 
-  // --- FETCH REVIEWS ---
   const handleViewReviews = async (teacher) => {
     setSelectedTeacher(teacher);
     setLoadingReviews(true);
@@ -59,7 +59,6 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
     }
   };
 
-  // --- SUBMIT RATING ---
   const handleRateSubmit = async () => {
     try {
       await API.post("/user/rate", {
@@ -70,7 +69,6 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
       alert("Rating submitted successfully!");
       setShowRatingModal(false);
       setComment("");
-      // Refresh matches to update the stars on UI
       const matchRes = await API.get("/user/matches");
       setMatchedTeachers(matchRes.data);
     } catch (err) {
@@ -141,28 +139,61 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
         {/* MATCHED TEACHERS SECTION */}
         {user.registrationType === "student" && (
           <div className="card">
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-              <h3>Recommended Teachers</h3>
-              <span style={{ fontSize: "12px", background: "var(--accent-1)", color: "#fff", padding: "2px 8px", borderRadius: "10px" }}>{matchedTeachers.length} Matches</span>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <div>
+                <h3 style={{ margin: 0 }}>Recommended Teachers</h3>
+                <span style={{ fontSize: "12px", background: "var(--accent-1)", color: "#fff", padding: "2px 8px", borderRadius: "10px" }}>{matchedTeachers.length} Matches</span>
+              </div>
+              
+              {/* VIEW SWITCHER */}
+              <div style={{ display: "flex", gap: "5px", background: "#f3f4f6", padding: "4px", borderRadius: "8px" }}>
+                <button 
+                  onClick={() => setViewType("list")}
+                  style={{ border: "none", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "12px", fontWeight: "600", background: viewType === "list" ? "#fff" : "transparent", boxShadow: viewType === "list" ? "0 2px 4px rgba(0,0,0,0.1)" : "none" }}>
+                  List
+                </button>
+                <button 
+                  onClick={() => setViewType("grid")}
+                  style={{ border: "none", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "12px", fontWeight: "600", background: viewType === "grid" ? "#fff" : "transparent", boxShadow: viewType === "grid" ? "0 2px 4px rgba(0,0,0,0.1)" : "none" }}>
+                  Grid
+                </button>
+              </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+            {/* TEACHER LIST/GRID CONTAINER */}
+            <div style={{ 
+              display: viewType === "grid" ? "grid" : "flex", 
+              flexDirection: viewType === "grid" ? "unset" : "column",
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", 
+              gap: "15px" 
+            }}>
               {matchedTeachers.map((teacher) => {
                 const common = teacher.teacherDetails?.subjectsExpert.filter(s => user.studentDetails?.subjects.includes(s)) || [];
                 const rating = teacher.teacherDetails?.averageRating || 0;
 
                 return (
-                  <div key={teacher._id} style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", padding: "15px", border: "1px solid rgba(0,0,0,0.05)", borderRadius: "12px", gap: "15px" }}>
+                  <div key={teacher._id} style={{ 
+                    display: "flex", 
+                    flexDirection: viewType === "grid" ? "column" : "row",
+                    justifyContent: "space-between", 
+                    alignItems: "center", 
+                    padding: "15px", 
+                    border: "1px solid rgba(0,0,0,0.05)", 
+                    borderRadius: "12px", 
+                    gap: "15px",
+                    textAlign: viewType === "grid" ? "center" : "left",
+                    background: "white"
+                  }}>
                     
-                    <div style={{ display: "flex", gap: "15px", alignItems: "center", minWidth: "250px" }}>
-                      <img src={teacher.profilePic?.url || "/default-avatar.png"} style={{ width: "55px", height: "55px", borderRadius: "50%", objectFit: "cover", border: "2px solid var(--accent-1)" }} />
+                    <div style={{ display: "flex", flexDirection: viewType === "grid" ? "column" : "row", gap: "15px", alignItems: "center", width: "100%" }}>
+                      <img src={teacher.profilePic?.url || "/default-avatar.png"} style={{ width: viewType === "grid" ? "70px" : "55px", height: viewType === "grid" ? "70px" : "55px", borderRadius: "50%", objectFit: "cover", border: "2px solid var(--accent-1)" }} />
                       <div>
                         <div style={{ fontWeight: "700" }}>{teacher.fullName}</div>
                         <div style={{ color: "#f1c40f", fontSize: "14px", margin: "2px 0" }}>
                           {"★".repeat(Math.round(rating)) + "☆".repeat(5 - Math.round(rating))}
                           <span className="muted" style={{ fontSize: "11px", marginLeft: "5px", color: "var(--muted)" }}>({teacher.teacherDetails?.totalReviews || 0})</span>
                         </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", justifyContent: viewType === "grid" ? "center" : "flex-start" }}>
                           {common.slice(0, 3).map(s => (
                             <span key={s} style={{ fontSize: "9px", background: "rgba(201, 163, 94, 0.1)", color: "var(--accent-1)", padding: "2px 6px", borderRadius: "4px", fontWeight: "600" }}>{s}</span>
                           ))}
@@ -170,19 +201,11 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
                       </div>
                     </div>
 
-                    <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-                      <button 
-                        onClick={() => handleViewReviews(teacher)} 
-                        style={{ background: "#f3f4f6", border: "1px solid #ddd", color: "#333", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>
-                        Reviews
-                      </button>
-                      <button 
-                        onClick={() => { setSelectedTeacher(teacher); setShowRatingModal(true); }}
-                        style={{ background: "transparent", border: "1px solid var(--muted)", color: "var(--muted)", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>
-                        Rate
-                      </button>
-                      <button onClick={() => (window.location.href = "/chats")} style={{ background: "transparent", border: "1px solid var(--accent-1)", color: "var(--accent-1)", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>Chat</button>
-                      <button onClick={() => handleHire(teacher._id)} style={{ background: "var(--accent-1)", color: "#fff", border: "none", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>Hire</button>
+                    <div style={{ display: "flex", gap: "8px", width: viewType === "grid" ? "100%" : "auto", justifyContent: "center", flexWrap: "wrap" }}>
+                      <button onClick={() => handleViewReviews(teacher)} style={{ flex: viewType === "grid" ? 1 : "none", background: "#f3f4f6", border: "1px solid #ddd", color: "#333", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>Reviews</button>
+                      <button onClick={() => { setSelectedTeacher(teacher); setShowRatingModal(true); }} style={{ flex: viewType === "grid" ? 1 : "none", background: "transparent", border: "1px solid var(--muted)", color: "var(--muted)", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>Rate</button>
+                      <button onClick={() => (window.location.href = "/chats")} style={{ flex: viewType === "grid" ? 1 : "none", background: "transparent", border: "1px solid var(--accent-1)", color: "var(--accent-1)", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>Chat</button>
+                      <button onClick={() => handleHire(teacher._id)} style={{ flex: viewType === "grid" ? 1 : "none", background: "var(--accent-1)", color: "#fff", border: "none", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>Hire</button>
                     </div>
                   </div>
                 );
@@ -208,7 +231,6 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-                   {/* Summary Header in Modal */}
                    <div style={{ background: "#f9f9f9", padding: "12px", borderRadius: "10px", textAlign: "center", marginBottom: "10px" }}>
                       <span style={{ fontSize: "24px", fontWeight: "bold", color: "#333" }}>{selectedTeacher?.teacherDetails?.averageRating}</span>
                       <span style={{ color: "#f1c40f", marginLeft: "5px", fontSize: "20px" }}>★</span>

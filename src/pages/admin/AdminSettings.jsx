@@ -40,30 +40,42 @@ export default function AdminSettings() {
     setLogoPreview(URL.createObjectURL(selectedFile)); 
   };
 
-  const handleSave = async () => {
-    if (!file) return alert("Please select a new logo first");
-    
-    setLoading(true);
-    const formData = new FormData();
-    formData.append("logo", file); 
+  // ... other imports and state ...
 
-    try {
-      // 4. Ensure the PUT URL matches your backend route exactly
-      await API.put("/settings", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+const handleSave = async () => {
+  // 1. Validation: Don't send if no file is selected
+  if (!file) return alert("Please select a new logo first");
+  
+  setLoading(true);
 
+  // 2. THE PART YOU ASKED ABOUT:
+  // Create the "envelope" for the file
+  const formData = new FormData();
+  
+  // This key "logo" MUST match the name in your backend: upload.single("logo")
+  formData.append("logo", file); 
+
+  try {
+    // 3. The API call
+    // We pass the formData as the body, and Axios handles the boundary headers
+    const response = await API.put("/settings", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    if (response.data) {
       alert("Logo updated successfully!");
-      
-      // 5. Hard reload to force App.js to re-fetch the new logo
+      // 4. Force the whole app (Header) to see the new logo
       window.location.reload(); 
-    } catch (err) {
-      console.error("Upload error details:", err.response?.data || err.message);
-      alert(err.response?.data?.message || "Failed to upload logo");
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err) {
+    console.error("Upload error:", err.response?.data || err.message);
+    alert("Failed to upload logo. Check console.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+// ... rest of the component ...
 
   return (
     <div className="admin-page">

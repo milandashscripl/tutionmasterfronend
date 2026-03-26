@@ -12,12 +12,12 @@ export default function LandingPage() {
     {
       title: "Master Your Studies with TuitionMaster",
       sub: "Connecting students with expert tutors for personalized learning in Western Odisha.",
-      img: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1920&q=80"
+      img: "https://lh3.googleusercontent.com/gps-cs-s/AHVAwepEZRl6IFxGi_n6TcpbRtEQ9srhwzfDaDqnK5nbRbvzbaCivXzzdj5adMpeV34oBcI8eZSePIEbQUL_3olivyUXx7HEmq8HmRV9iFyweGJ7BAQ4vzdb62uuugh1m6oJEKis2dA0=s1360-w1360-h1020-rw"
     },
     {
       title: "Verified Tutors, Proven Results",
       sub: "Every educator is vetted to ensure your academic success is in the right hands.",
-      img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1920&q=80"
+      img: "https://lh3.googleusercontent.com/gps-cs-s/AHVAwerIfG5Pibc4u8ATDgI86ze8DKt_t7CwNLk1mnxuxqHvL2DjrUForWK5KRBQbUGhdKB0heYoqxIC1iay6Lo9vH1tqv3Fh3sUEEFBeHdkkiVvW1o-52Ph-RXBvEVUqxD5Kw2-1w56=s1360-w1360-h1020-rw"
     },
     {
       title: "Learning Without Boundaries",

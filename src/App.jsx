@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
+/* PAGE IMPORTS */
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Verify from "./pages/Verify";
@@ -11,8 +12,7 @@ import Profile from "./pages/Profile";
 import Chats from "./pages/Chats";
 import Courses from "./pages/Courses";
 import Settings from "./pages/Settings";
-
-import API from "./api/api";
+import LandingPage from "./pages/LandingPage";
 
 /* ADMIN IMPORTS */
 import AdminRoute from "./components/AdminRoute";
@@ -20,10 +20,12 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserRequests from "./pages/admin/UserRequests";
 import AppSettings from "./pages/admin/AdminSettings";
-import LandingPage from "./pages/LandingPage";
+
+/* API UTILS */
+import API from "./api/api";
 
 export default function App() {
-  // NEW: State for global site settings
+  // Global site settings state (Logo and Name)
   const [siteSettings, setSiteSettings] = useState({
     logoUrl: "",
     siteName: "TuitionMaster"
@@ -37,7 +39,7 @@ export default function App() {
     }
   });
 
-  // NEW: Fetch settings on app load
+  // Fetch Branding Settings from Backend on App Load
   useEffect(() => {
     API.get("/settings")
       .then((res) => {
@@ -59,7 +61,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="app-wrap">
-        {/* Pass siteSettings to Header */}
+        {/* Navbar component with dynamic branding */}
         <HeaderComp toggleSidebar={toggleSidebar} siteSettings={siteSettings} />
 
         <Routes>
@@ -116,9 +118,11 @@ export default function App() {
 
 function HeaderComp({ toggleSidebar, siteSettings }) {
   const location = useLocation();
+  const navigate = useNavigate(); // For SPA navigation
   const [user, setUser] = useState(null);
 
-  const hideHeader = ["/", "/register", "/verify", "/forgot", "/reset"].includes(location.pathname);
+  // Hide header on Auth pages
+  const hideHeader = ["/", "/login", "/register", "/verify", "/forgot", "/reset"].includes(location.pathname);
 
   const isDashboard =
     location.pathname.startsWith("/dashboard") ||
@@ -145,24 +149,24 @@ function HeaderComp({ toggleSidebar, siteSettings }) {
           ☰
         </button>
 
-        {/* LOGIC: Only show image if logoUrl exists. No text fallback. */}
+        {/* Dynamic Logo: Only shows if a URL is present in database */}
         {siteSettings.logoUrl && (
           <img
             src={siteSettings.logoUrl}
-            alt="App Logo"
+            alt="Logo"
             style={{ 
               height: "40px", 
               width: "auto", 
-              objectFit: "contain",
+              objectFit: "contain", 
               cursor: "pointer" 
             }}
-            onClick={() => window.location.href = "/dashboard"}
+            onClick={() => navigate("/dashboard")}
           />
         )}
       </div>
 
       {user && (
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div className="header-user-badge" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           {user.profilePic?.url ? (
             <img
               src={user.profilePic.url}

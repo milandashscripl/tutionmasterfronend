@@ -55,6 +55,12 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
   }, []);
 
   useEffect(() => {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     API.get("/user")
       .then((res) => setUsers(res.data || []))
@@ -87,6 +93,20 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
         if (prev.some((m) => m._id === message._id)) return prev;
         return [...prev, message];
       });
+
+      // Show notification for new messages in other chats
+      if (selectedChat !== message.chatId && Notification.permission === 'granted') {
+        const notification = new Notification(`New message from ${message.sender.fullName || message.sender.email}`, {
+          body: message.content.length > 50 ? message.content.substring(0, 50) + '...' : message.content,
+          icon: getProfileUrl(message.sender) || '/favicon.ico'
+        });
+
+        notification.onclick = () => {
+          setSelectedChat(message.chatId);
+          loadMessages(message.chatId);
+          window.focus();
+        };
+      }
     });
 
     return () => socket.disconnect();

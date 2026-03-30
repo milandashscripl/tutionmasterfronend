@@ -55,7 +55,14 @@ export default function LandingPage() {
       try {
         // 1. Fetch Global Branding
         const settingsRes = await API.get("/admin/settings/public");
-        if (settingsRes.data) setSiteSettings(settingsRes.data);
+        if (settingsRes.data) {
+          console.log("Settings received:", settingsRes.data);
+          setSiteSettings({
+            siteName: settingsRes.data.siteName || "TuitionMaster",
+            themeColor: settingsRes.data.themeColor || "#c9a35e",
+            logo: settingsRes.data.logo || { url: "" }
+          });
+        }
 
         // 2. Fetch Landing Page Content
         const landingRes = await API.get("/admin/landing-page");
@@ -75,6 +82,7 @@ export default function LandingPage() {
           colleges: uniqueColleges.length || 15
         });
       } catch (error) {
+        console.error("Error fetching landing page data:", error);
         setStats({ tutors: 450, students: 1200, colleges: 25 });
       } finally {
         setLoading(false);
@@ -107,10 +115,16 @@ export default function LandingPage() {
 
       <header className="brand-header">
         <div className="brand">
-          {siteSettings.logo?.url ? (
-            <img src={siteSettings.logo.url} alt="Logo" style={{ height: "40px", objectFit: "contain" }} />
+          {siteSettings.logo && siteSettings.logo.url && siteSettings.logo.url.trim() ? (
+            <img 
+              src={siteSettings.logo.url} 
+              alt="Logo" 
+              style={{ height: "40px", objectFit: "contain", maxWidth: "200px", display: "block" }} 
+            />
           ) : (
-            <h2>{siteSettings.siteName}</h2>
+            <h2 style={{ margin: 0, fontSize: "1.2rem", color: siteSettings.themeColor }}>
+              {siteSettings.siteName}
+            </h2>
           )}
         </div>
         <button className={`hamburger ${isMenuOpen ? 'active' : ''}`} onClick={() => setMenuOpen(!isMenuOpen)}>

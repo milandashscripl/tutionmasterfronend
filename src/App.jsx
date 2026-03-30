@@ -20,15 +20,17 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserRequests from "./pages/admin/UserRequests";
 import AppSettings from "./pages/admin/AdminSettings";
+import AdminLandingPage from "./pages/admin/AdminLandingPage";
 
 /* API UTILS */
 import API from "./api/api";
 
 export default function App() {
-  // Global site settings state (Logo and Name)
+  // --- UPDATED STATE: Includes themeColor for global consistency ---
   const [siteSettings, setSiteSettings] = useState({
     logoUrl: "",
-    siteName: "TuitionMaster"
+    siteName: "TuitionMaster",
+    themeColor: "#c9a35e"
   });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
@@ -41,12 +43,14 @@ export default function App() {
 
   // Fetch Branding Settings from Backend on App Load
   useEffect(() => {
-    API.get("/settings")
+    // Note: Ensure this endpoint matches your backend route (/admin/settings/public)
+    API.get("/admin/settings/public")
       .then((res) => {
         if (res.data) {
           setSiteSettings({
             logoUrl: res.data.logo?.url || "",
-            siteName: res.data.siteName || "TuitionMaster"
+            siteName: res.data.siteName || "TuitionMaster",
+            themeColor: res.data.themeColor || "#c9a35e"
           });
         }
       })
@@ -61,7 +65,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="app-wrap">
-        {/* Navbar component with dynamic branding */}
+        {/* Pass siteSettings to Header */}
         <HeaderComp toggleSidebar={toggleSidebar} siteSettings={siteSettings} />
 
         <Routes>
@@ -107,6 +111,7 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="user-requests" element={<UserRequests />} />
             <Route path="app-settings" element={<AppSettings />} />
+            <Route path="landing-page" element={<AdminLandingPage />} />
           </Route>
         </Routes>
       </div>
@@ -118,10 +123,9 @@ export default function App() {
 
 function HeaderComp({ toggleSidebar, siteSettings }) {
   const location = useLocation();
-  const navigate = useNavigate(); // For SPA navigation
+  const navigate = useNavigate(); 
   const [user, setUser] = useState(null);
 
-  // Hide header on Auth pages
   const hideHeader = ["/", "/login", "/register", "/verify", "/forgot", "/reset"].includes(location.pathname);
 
   const isDashboard =
@@ -144,29 +148,35 @@ function HeaderComp({ toggleSidebar, siteSettings }) {
 
   return (
     <header className="brand-header">
-      <div className="brand" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      <div className="brand" style={{ display: "flex", alignItems: "center", gap: "15px" }}>
         <button className="hamburger" onClick={() => toggleSidebar()}>
           ☰
         </button>
 
-        {/* Dynamic Logo: Only shows if a URL is present in database */}
-        {siteSettings.logoUrl && (
-          <img
-            src={siteSettings.logoUrl}
-            alt="Logo"
-            style={{ 
-              height: "40px", 
-              width: "auto", 
-              objectFit: "contain", 
-              cursor: "pointer" 
-            }}
-            onClick={() => navigate("/dashboard")}
-          />
-        )}
+        {/* --- DYNAMIC LOGO LOGIC --- */}
+        <div onClick={() => navigate("/dashboard")} style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
+          {siteSettings.logoUrl ? (
+            <img
+              src={siteSettings.logoUrl}
+              alt="Logo"
+              style={{ 
+                height: "35px", 
+                width: "auto", 
+                objectFit: "contain"
+              }}
+            />
+          ) : (
+            // Fallback to text if no logo is uploaded
+            <h2 style={{ margin: 0, fontSize: "1.2rem", color: siteSettings.themeColor }}>
+              {siteSettings.siteName}
+            </h2>
+          )}
+        </div>
       </div>
 
       {user && (
         <div className="header-user-badge" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ fontSize: "0.9rem", fontWeight: "500" }}>{user.fullName}</span>
           {user.profilePic?.url ? (
             <img
               src={user.profilePic.url}
@@ -176,6 +186,7 @@ function HeaderComp({ toggleSidebar, siteSettings }) {
                 height: 35,
                 borderRadius: "50%",
                 objectFit: "cover",
+                border: `2px solid ${siteSettings.themeColor}`
               }}
             />
           ) : (
@@ -184,7 +195,7 @@ function HeaderComp({ toggleSidebar, siteSettings }) {
                 width: 35,
                 height: 35,
                 borderRadius: "50%",
-                background: "#4f46e5",
+                background: siteSettings.themeColor,
                 color: "#fff",
                 display: "flex",
                 alignItems: "center",

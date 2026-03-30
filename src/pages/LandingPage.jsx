@@ -8,16 +8,33 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const slides = [
+  // NEW: Dynamic Branding State
+  const [siteSettings, setSiteSettings] = useState({
+    siteName: "TuitionMaster",
+    themeColor: "#c9a35e",
+    logo: { url: "" }
+  });
+
+  // Landing page content state
+  const [landingContent, setLandingContent] = useState({
+    heroSlides: [],
+    aboutSection: {},
+    howItWorks: { steps: [] },
+    testimonials: [],
+    contactSection: {},
+    footer: {}
+  });
+
+  const slides = landingContent.heroSlides.length > 0 ? landingContent.heroSlides : [
     {
-      title: "Master Your Studies with TuitionMaster",
+      title: `Master Your Studies with ${siteSettings.siteName}`,
       sub: "Connecting students with expert tutors for personalized learning in Western Odisha.",
-      img: "https://lh3.googleusercontent.com/gps-cs-s/AHVAwepEZRl6IFxGi_n6TcpbRtEQ9srhwzfDaDqnK5nbRbvzbaCivXzzdj5adMpeV34oBcI8eZSePIEbQUL_3olivyUXx7HEmq8HmRV9iFyweGJ7BAQ4vzdb62uuugh1m6oJEKis2dA0=s1360-w1360-h1020-rw"
+      img: "https://images.unsplash.com/photo-1513258496099-48168024adb0?auto=format&fit=crop&w=1920&q=80"
     },
     {
       title: "Verified Tutors, Proven Results",
       sub: "Every educator is vetted to ensure your academic success is in the right hands.",
-      img: "https://lh3.googleusercontent.com/gps-cs-s/AHVAwerIfG5Pibc4u8ATDgI86ze8DKt_t7CwNLk1mnxuxqHvL2DjrUForWK5KRBQbUGhdKB0heYoqxIC1iay6Lo9vH1tqv3Fh3sUEEFBeHdkkiVvW1o-52Ph-RXBvEVUqxD5Kw2-1w56=s1360-w1360-h1020-rw"
+      img: "https://images.unsplash.com/photo-1524178232363-1fb28f74b671?auto=format&fit=crop&w=1920&q=80"
     },
     {
       title: "Learning Without Boundaries",
@@ -31,12 +48,21 @@ export default function LandingPage() {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const res = await API.get("/admin/users");  
+        // 1. Fetch Global Branding
+        const settingsRes = await API.get("/admin/settings/public");
+        if (settingsRes.data) setSiteSettings(settingsRes.data);
+
+        // 2. Fetch Landing Page Content
+        const landingRes = await API.get("/admin/landing-page");
+        if (landingRes.data) setLandingContent(landingRes.data);
+
+        // 3. Fetch User Stats
+        const res = await API.get("/admin/users");
         const allUsers = res.data || [];
         const activeUsers = allUsers.filter(u => u.isApproved && u.isVerified);
         const students = activeUsers.filter(u => u.registrationType === "student");
@@ -54,7 +80,7 @@ export default function LandingPage() {
         setLoading(false);
       }
     };
-    fetchStats();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -70,8 +96,23 @@ export default function LandingPage() {
 
   return (
     <div className="landing-container">
+      {/* DYNAMIC CSS VARIABLES */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          --bg: #faf9f7;
+          --text: #1f1e1c;
+          --accent-1: ${siteSettings.themeColor};
+        }
+      `}} />
+
       <header className="brand-header">
-        <div className="brand"><h2>TuitionMaster</h2></div>
+        <div className="brand">
+          {siteSettings.logo?.url ? (
+            <img src={siteSettings.logo.url} alt="Logo" style={{ height: "40px", objectFit: "contain" }} />
+          ) : (
+            <h2>{siteSettings.siteName}</h2>
+          )}
+        </div>
         <button className={`hamburger ${isMenuOpen ? 'active' : ''}`} onClick={() => setMenuOpen(!isMenuOpen)}>
           <span className="bar"></span><span className="bar"></span><span className="bar"></span>
         </button>
@@ -89,11 +130,11 @@ export default function LandingPage() {
       {/* HERO SLIDER */}
       <section id="home" className="hero-slider">
         {slides.map((slide, index) => (
-          <div key={index} className={`slide ${currentSlide === index ? 'active' : ''}`} style={{ backgroundImage: `url(${slide.img})` }}>
+          <div key={index} className={`slide ${currentSlide === index ? 'active' : ''}`} style={{ backgroundImage: `url(${slide.img || slide.imageUrl})` }}>
             <div className="hero-overlay">
               <div className="hero-content">
                 <h1 className="welcome-text">{slide.title}</h1>
-                <p className="hero-subtext">{slide.sub}</p>
+                <p className="hero-subtext">{slide.sub || slide.subtitle}</p>
                 <Link to="/register" className="btn-primary">Start Your Journey</Link>
               </div>
             </div>
@@ -111,13 +152,13 @@ export default function LandingPage() {
         <div className="container">
           <div className="about-grid">
             <div className="about-text">
-              <span className="badge">Our Story</span>
-              <h2>Empowering Education in Western Odisha</h2>
-              <p>TuitionMaster was born from a simple observation: students struggle to find quality mentors nearby, while talented educators lack a platform to reach them.</p>
-              <p>Our mission is to ensure every student has access to the academic guidance they deserve through direct and verified connections.</p>
+              <span className="badge">{landingContent.aboutSection?.badge || "Our Story"}</span>
+              <h2>{landingContent.aboutSection?.title || "Empowering Education in Western Odisha"}</h2>
+              <p>{landingContent.aboutSection?.description1 || "TuitionMaster was born from a simple observation: students struggle to find quality mentors nearby, while talented educators lack a platform to reach them."}</p>
+              <p>{landingContent.aboutSection?.description2 || "Our mission is to ensure every student has access to the academic guidance they deserve through direct and verified connections."}</p>
             </div>
             <div className="about-image">
-               <img src="https://images.unsplash.com/photo-1524178232363-1fb28f74b671?auto=format&fit=crop&w=800&q=80" alt="Education" />
+               <img src={landingContent.aboutSection?.imageUrl || "https://images.unsplash.com/photo-1524178232363-1fb28f74b671?auto=format&fit=crop&w=800&q=80"} alt="Education" />
             </div>
           </div>
         </div>
@@ -126,25 +167,21 @@ export default function LandingPage() {
       {/* HOW IT WORKS */}
       <section id="how-it-works" className="how-it-works reveal">
         <div className="section-header">
-          <h2>How It Works</h2>
-          <p>Three simple steps to start your academic success</p>
+          <h2>{landingContent.howItWorks?.title || "How It Works"}</h2>
+          <p>{landingContent.howItWorks?.subtitle || "Three simple steps to start your academic success"}</p>
         </div>
         <div className="steps-grid">
-          <div className="step-card">
-            <div className="step-num">01</div>
-            <h3>Register</h3>
-            <p>Create your profile as a Student or Teacher and verify your credentials.</p>
-          </div>
-          <div className="step-card">
-            <div className="step-num">02</div>
-            <h3>Connect</h3>
-            <p>Browse through verified profiles and initiate a direct chat instantly.</p>
-          </div>
-          <div className="step-card">
-            <div className="step-num">03</div>
-            <h3>Learn</h3>
-            <p>Schedule your sessions and track your growth through our dashboard.</p>
-          </div>
+          {(landingContent.howItWorks?.steps || [
+            { number: "01", title: "Register", description: "Create your profile as a Student or Teacher and verify your credentials." },
+            { number: "02", title: "Connect", description: "Browse through verified profiles and initiate a direct chat instantly." },
+            { number: "03", title: "Learn", description: "Schedule your sessions and track your growth through our dashboard." }
+          ]).map((step, index) => (
+            <div className="step-card" key={index}>
+              <div className="step-num">{step.number}</div>
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -161,14 +198,15 @@ export default function LandingPage() {
           <h2>Student & Tutor Success</h2>
         </div>
         <div className="testimonial-grid">
-          <div className="test-card">
-            <p>"Found a great Physics tutor from Jadavpur University within hours. Highly recommended!"</p>
-            <h5>— Rahul S. (Student)</h5>
-          </div>
-          <div className="test-card">
-            <p>"As a teacher, managing my batch logs and student chats has never been this organized."</p>
-            <h5>— Priyanka D. (Tutor)</h5>
-          </div>
+          {(landingContent.testimonials || [
+            { content: "Found a great Physics tutor from Jadavpur University within hours. Highly recommended!", author: "Rahul S. (Student)" },
+            { content: "As a teacher, managing my batch logs and student chats has never been this organized.", author: "Priyanka D. (Tutor)" }
+          ]).map((testimonial, index) => (
+            <div className="test-card" key={index}>
+              <p>"{testimonial.content}"</p>
+              <h5>— {testimonial.author}</h5>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -176,10 +214,10 @@ export default function LandingPage() {
       <section id="contact" className="contact-section reveal">
         <div className="contact-container">
           <div className="contact-info">
-            <h2>Get In Touch</h2>
-            <p>Have questions? Our team is here to help you navigate your journey.</p>
-            <div className="info-item"><strong>📍 Location:</strong> Western Odisha, India</div>
-            <div className="info-item"><strong>📧 Email:</strong> support@tuitionmaster.com</div>
+            <h2>{landingContent.contactSection?.title || "Get In Touch"}</h2>
+            <p>{landingContent.contactSection?.subtitle || "Have questions? Our team is here to help you navigate your journey."}</p>
+            <div className="info-item"><strong>📍 Location:</strong> {landingContent.contactSection?.location || "Western Odisha, India"}</div>
+            <div className="info-item"><strong>📧 Email:</strong> {landingContent.contactSection?.email || "support@tuitionmaster.com"}</div>
           </div>
           <form className="contact-form" onSubmit={(e) => e.preventDefault()}>
             <input type="text" placeholder="Your Name" required />
@@ -191,74 +229,50 @@ export default function LandingPage() {
       </section>
 
       <footer className="landing-footer">
-        <p>&copy; 2026 TuitionMaster. All rights reserved.</p>
+        <p>{landingContent.footer?.copyright || `© 2026 ${siteSettings.siteName}. All rights reserved.`}</p>
       </footer>
 
       <style jsx>{`
-        :root {
-          --bg: #faf9f7;
-          --text: #1f1e1c;
-          --accent-1: #c9a35e;
-        }
-
         .landing-container { background: var(--bg); color: var(--text); overflow-x: hidden; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 5%; }
-
-        /* HEADER & MOBILE NAV FIX */
         .brand-header { position: sticky; top: 0; z-index: 1000; background: #fff; display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; border-bottom: 1px solid #eee; }
         .top-nav { display: flex; gap: 20px; align-items: center; }
         .link { text-decoration: none; color: var(--text); font-weight: 500; font-size: 0.9rem; }
         .btn-primary-sm { background: var(--accent-1); color: white; padding: 8px 18px; border-radius: 20px; text-decoration: none; font-weight: 600; font-size: 0.85rem; }
-
-        /* HERO SLIDER */
         .hero-slider { height: 75vh; min-height: 450px; position: relative; overflow: hidden; z-index: 1; }
         .slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: 1.2s ease-in-out; }
         .slide.active { opacity: 1; }
         .hero-overlay { height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; text-align: center; }
         .welcome-text { font-size: clamp(1.8rem, 5vw, 3.5rem); color: #fff; margin-bottom: 15px; }
         .hero-subtext { color: #ccc; margin-bottom: 25px; max-width: 600px; padding: 0 20px; }
-
         .slider-indicators { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 5; }
         .dot { width: 8px; height: 8px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; }
         .dot.active { background: var(--accent-1); width: 25px; border-radius: 10px; }
-
-        /* SECTIONS */
         .about-section, .how-it-works, .testimonials, .contact-section { padding: 80px 0; }
         .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
         .about-image img { width: 100%; border-radius: 15px; box-shadow: 15px 15px 0 var(--accent-1); }
         .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-top: 40px; padding: 0 5%; }
         .step-card { background: #fff; padding: 40px 25px; border-radius: 15px; position: relative; }
         .step-num { font-size: 3rem; font-weight: 800; color: #f5f5f5; position: absolute; top: 10px; right: 20px; }
-        
         .testimonial-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; padding: 0 5%; margin-top: 40px; }
         .test-card { background: #fff; padding: 30px; border-radius: 15px; text-align: left; border-left: 4px solid var(--accent-1); }
-        
         .stats-bar { display: flex; justify-content: space-around; padding: 50px 5%; background: var(--text); color: #fff; text-align: center; }
-
         .contact-container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 0 5%; }
         .contact-form { display: flex; flex-direction: column; gap: 12px; }
         .contact-form input, .contact-form textarea { padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
         .btn-primary { background: var(--accent-1); color: white; padding: 12px 30px; border: none; border-radius: 25px; cursor: pointer; font-weight: 600; }
-
-        /* MOBILE SIDEBAR FIX */
         @media (max-width: 900px) {
           .hamburger { display: flex; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; z-index: 2000; }
           .hamburger .bar { width: 22px; height: 2px; background: #333; transition: 0.3s; }
-          
-          .top-nav { 
-            position: fixed; top: 0; right: -100%; width: 70%; height: 100vh; 
-            background: #fff; flex-direction: column; justify-content: center; 
-            transition: 0.4s ease-in-out; z-index: 1500; 
-            box-shadow: -10px 0 20px rgba(0,0,0,0.1); 
-          }
+          .top-nav { position: fixed; top: 0; right: -100%; width: 70%; height: 100vh; background: #fff; flex-direction: column; justify-content: center; transition: 0.4s ease-in-out; z-index: 1500; box-shadow: -10px 0 20px rgba(0,0,0,0.1); }
           .top-nav.open { right: 0; }
           .about-grid, .contact-container { grid-template-columns: 1fr; text-align: center; }
           .about-image { order: -1; }
         }
-
         .reveal { opacity: 0; transform: translateY(30px); transition: 0.8s ease-out; }
         .reveal-visible { opacity: 1; transform: translateY(0); }
         .landing-footer { padding: 30px; background: #111; color: #555; text-align: center; }
+        .badge { background: var(--accent-1); color: #fff; padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; }
       `}</style>
     </div>
   );

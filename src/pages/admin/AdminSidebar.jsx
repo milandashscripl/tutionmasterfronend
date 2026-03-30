@@ -7,6 +7,7 @@ export default function AdminSidebar({ isSidebarOpen, toggleSidebar }) {
   const menus = [
     { name: "Dashboard", path: "/admin" },
     { name: "User Requests", path: "/admin/user-requests" },
+    { name: "Landing Page", path: "/admin/landing-page" },
     { name: "App Settings", path: "/admin/app-settings" }
   ];
 

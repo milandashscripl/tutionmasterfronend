@@ -155,9 +155,9 @@ function HeaderComp({ toggleSidebar, siteSettings }) {
 
         {/* --- DYNAMIC LOGO LOGIC --- */}
         <div onClick={() => navigate("/dashboard")} style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-          {siteSettings.logoUrl ? (
+          {siteSettings.logo?.url ? (
             <img
-              src={siteSettings.logoUrl}
+              src={siteSettings.logo.url}
               alt="Logo"
               style={{ 
                 height: "35px", 

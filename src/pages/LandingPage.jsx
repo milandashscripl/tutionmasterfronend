@@ -251,9 +251,14 @@ export default function LandingPage() {
         .landing-container { background: var(--bg); color: var(--text); overflow-x: hidden; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 5%; }
         .brand-header { position: sticky; top: 0; z-index: 1000; background: #fff; display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; border-bottom: 1px solid #eee; }
+        .brand { display: flex; align-items: center; gap: 15px; cursor: pointer; }
+        .brand img { height: 40px; object-fit: contain; display: block; }
+        .brand h2 { margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--accent-1); }
         .top-nav { display: flex; gap: 20px; align-items: center; }
-        .link { text-decoration: none; color: var(--text); font-weight: 500; font-size: 0.9rem; }
-        .btn-primary-sm { background: var(--accent-1); color: white; padding: 8px 18px; border-radius: 20px; text-decoration: none; font-weight: 600; font-size: 0.85rem; }
+        .link { text-decoration: none; color: var(--text); font-weight: 500; font-size: 0.9rem; transition: 0.3s; }
+        .link:hover { color: var(--accent-1); }
+        .btn-primary-sm { background: var(--accent-1); color: white; padding: 8px 18px; border-radius: 20px; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: 0.3s; }
+        .btn-primary-sm:hover { opacity: 0.9; }
         .hero-slider { height: 75vh; min-height: 450px; position: relative; overflow: hidden; z-index: 1; }
         .slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: 1.2s ease-in-out; }
         .slide.active { opacity: 1; }
@@ -261,33 +266,48 @@ export default function LandingPage() {
         .welcome-text { font-size: clamp(1.8rem, 5vw, 3.5rem); color: #fff; margin-bottom: 15px; }
         .hero-subtext { color: #ccc; margin-bottom: 25px; max-width: 600px; padding: 0 20px; }
         .slider-indicators { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 5; }
-        .dot { width: 8px; height: 8px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; }
+        .dot { width: 8px; height: 8px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: 0.3s; }
         .dot.active { background: var(--accent-1); width: 25px; border-radius: 10px; }
         .about-section, .how-it-works, .testimonials, .contact-section { padding: 80px 0; }
+        .section-header { text-align: center; margin-bottom: 40px; }
+        .section-header h2 { font-size: 2.2rem; margin-bottom: 10px; }
+        .section-header p { color: #999; font-size: 1rem; }
         .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
         .about-image img { width: 100%; border-radius: 15px; box-shadow: 15px 15px 0 var(--accent-1); }
         .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-top: 40px; padding: 0 5%; }
-        .step-card { background: #fff; padding: 40px 25px; border-radius: 15px; position: relative; }
+        .step-card { background: #fff; padding: 40px 25px; border-radius: 15px; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: 0.3s; }
+        .step-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
         .step-num { font-size: 3rem; font-weight: 800; color: #f5f5f5; position: absolute; top: 10px; right: 20px; }
         .testimonial-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; padding: 0 5%; margin-top: 40px; }
-        .test-card { background: #fff; padding: 30px; border-radius: 15px; text-align: left; border-left: 4px solid var(--accent-1); }
+        .test-card { background: #fff; padding: 30px; border-radius: 15px; text-align: left; border-left: 4px solid var(--accent-1); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .test-card p { font-style: italic; color: #666; margin-bottom: 15px; }
+        .test-card h5 { color: #333; margin: 0; font-size: 0.95rem; }
+        .stat-item { text-align: center; }
+        .stat-item h3 { font-size: 2.5rem; margin: 0; }
+        .stat-item p { margin: 5px 0 0 0; opacity: 0.9; }
         .stats-bar { display: flex; justify-content: space-around; padding: 50px 5%; background: var(--text); color: #fff; text-align: center; }
         .contact-container { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 0 5%; }
+        .contact-info h2 { margin-top: 0; }
+        .info-item { margin: 15px 0; font-size: 0.95rem; }
         .contact-form { display: flex; flex-direction: column; gap: 12px; }
-        .contact-form input, .contact-form textarea { padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
-        .btn-primary { background: var(--accent-1); color: white; padding: 12px 30px; border: none; border-radius: 25px; cursor: pointer; font-weight: 600; }
+        .contact-form input, .contact-form textarea { padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; font-family: inherit; }
+        .contact-form input:focus, .contact-form textarea:focus { border-color: var(--accent-1); }
+        .btn-primary { background: var(--accent-1); color: white; padding: 12px 30px; border: none; border-radius: 25px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .btn-primary:hover { opacity: 0.9; transform: scale(1.02); }
+        .landing-footer { padding: 30px; background: #111; color: #555; text-align: center; }
+        .badge { background: var(--accent-1); color: #fff; padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 10px; }
         @media (max-width: 900px) {
-          .hamburger { display: flex; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; z-index: 2000; }
+          .hamburger { display: flex; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; z-index: 2000; padding: 5px; }
           .hamburger .bar { width: 22px; height: 2px; background: #333; transition: 0.3s; }
           .top-nav { position: fixed; top: 0; right: -100%; width: 70%; height: 100vh; background: #fff; flex-direction: column; justify-content: center; transition: 0.4s ease-in-out; z-index: 1500; box-shadow: -10px 0 20px rgba(0,0,0,0.1); }
           .top-nav.open { right: 0; }
           .about-grid, .contact-container { grid-template-columns: 1fr; text-align: center; }
           .about-image { order: -1; }
+          .brand h2 { font-size: 1rem; }
+          .brand img { height: 35px; }
         }
         .reveal { opacity: 0; transform: translateY(30px); transition: 0.8s ease-out; }
         .reveal-visible { opacity: 1; transform: translateY(0); }
-        .landing-footer { padding: 30px; background: #111; color: #555; text-align: center; }
-        .badge { background: var(--accent-1); color: #fff; padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; }
       `}</style>
     </div>
   );

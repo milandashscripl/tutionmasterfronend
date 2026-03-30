@@ -195,18 +195,33 @@ export default function LandingPage() {
       {/* TESTIMONIALS */}
       <section id="testimonials" className="testimonials reveal">
         <div className="section-header">
-          <h2>Student & Tutor Success</h2>
+          <h2>What Students & Tutors Say</h2>
+          <p>Real success stories from our community</p>
         </div>
         <div className="testimonial-grid">
-          {(landingContent.testimonials || [
-            { content: "Found a great Physics tutor from Jadavpur University within hours. Highly recommended!", author: "Rahul S. (Student)" },
-            { content: "As a teacher, managing my batch logs and student chats has never been this organized.", author: "Priyanka D. (Tutor)" }
-          ]).map((testimonial, index) => (
-            <div className="test-card" key={index}>
-              <p>"{testimonial.content}"</p>
-              <h5>— {testimonial.author}</h5>
-            </div>
-          ))}
+          {(landingContent.testimonials && landingContent.testimonials.length > 0) ? (
+            landingContent.testimonials.map((testimonial, index) => (
+              <div className="test-card" key={index}>
+                <p>"{testimonial.content}"</p>
+                <h5>— {testimonial.author}</h5>
+              </div>
+            ))
+          ) : (
+            <>
+              <div className="test-card">
+                <p>"Found a great Physics tutor from Jadavpur University within hours. Highly recommended!"</p>
+                <h5>— Rahul S. (Student)</h5>
+              </div>
+              <div className="test-card">
+                <p>"As a teacher, managing my batch logs and student chats has never been this organized."</p>
+                <h5>— Priyanka D. (Tutor)</h5>
+              </div>
+              <div className="test-card">
+                <p>"The platform made it so easy to find a qualified Math tutor near me. Best decision!"</p>
+                <h5>— Shreya M. (Student)</h5>
+              </div>
+            </>
+          )}
         </div>
       </section>
 

@@ -27,6 +27,34 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
     type: "long",
   });
 
+  // Video upload states
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoPreview, setVideoPreview] = useState("");
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+
+  // Handle video file selection
+  const handleVideoFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (!selectedFile) return;
+
+    // Validate file type
+    if (!selectedFile.type.startsWith('video/')) {
+      alert('Please select a valid video file.');
+      return;
+    }
+
+    // Validate file size (max 50MB for videos to prevent memory issues)
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (selectedFile.size > maxSize) {
+      alert(`Video file is too large. Please select a video under ${maxSize / (1024 * 1024)}MB. Large videos may cause upload issues.`);
+      return;
+    }
+
+    setVideoFile(selectedFile);
+    if (videoPreview) URL.revokeObjectURL(videoPreview);
+    setVideoPreview(URL.createObjectURL(selectedFile));
+  };
+
   // Comments and Review States
   const [commentText, setCommentText] = useState("");
   const [ratingValue, setRatingValue] = useState(5);
@@ -70,6 +98,13 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
       }
     };
     loadCourses();
+
+    // Cleanup video preview URL on unmount
+    return () => {
+      if (videoPreview) {
+        URL.revokeObjectURL(videoPreview);
+      }
+    };
   }, [searchTerm, filterSubject, sortBy]);
 
   const handleCreateCourse = async (e) => {
@@ -99,14 +134,55 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
   const handleAddVideo = async (e) => {
     e.preventDefault();
     if (!selectedCourse) return;
+
+    if (!videoFile) {
+      alert("Please select a video file to upload.");
+      return;
+    }
+
+    setUploadingVideo(true);
     try {
-      const res = await API.post(`/courses/${selectedCourse._id}/video`, videoForm);
+      // Use FormData to send both text fields and the video file
+      const formData = new FormData();
+      formData.append("title", videoForm.title);
+      formData.append("description", videoForm.description);
+      formData.append("duration", videoForm.duration);
+      formData.append("type", videoForm.type);
+      formData.append("video", videoFile);
+
+      const res = await API.post(`/courses/${selectedCourse._id}/video`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       setSelectedCourse(res.data);
       setCourses(courses.map(c => c._id === res.data._id ? res.data : c));
+
+      // Reset form
       setVideoForm({ title: "", description: "", url: "", duration: "", type: "long" });
-      alert("Video added successfully!");
+      setVideoFile(null);
+      if (videoPreview) {
+        URL.revokeObjectURL(videoPreview);
+        setVideoPreview("");
+      }
+
+      alert("Video uploaded successfully!");
     } catch (err) {
-      alert("Failed to add video: " + (err.response?.data?.message || err.message));
+      console.error("Video upload error:", err);
+      let errorMessage = "Failed to upload video";
+      
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.status === 413) {
+        errorMessage = "Video file is too large for upload";
+      } else if (err.response?.status === 415) {
+        errorMessage = "Unsupported video format";
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      alert("Video upload failed: " + errorMessage);
+    } finally {
+      setUploadingVideo(false);
     }
   };
 
@@ -382,12 +458,49 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
                             <option value="long">Full Tutorial</option>
                           </select>
                         </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
-                          <input placeholder="Video URL (Cloudinary)" value={videoForm.url} onChange={(e) => setVideoForm({ ...videoForm, url: e.target.value })} required style={{ padding: "8px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "13px" }} />
-                          <input type="number" placeholder="Duration (seconds)" value={videoForm.duration} onChange={(e) => setVideoForm({ ...videoForm, duration: e.target.value })} required style={{ padding: "8px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "13px" }} />
+                        <div style={{ marginBottom: "10px" }}>
+                          <input type="number" placeholder="Duration (seconds)" value={videoForm.duration} onChange={(e) => setVideoForm({ ...videoForm, duration: e.target.value })} required style={{ width: "100%", padding: "8px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "13px" }} />
                         </div>
-                        <button type="submit" style={{ width: "100%", background: "var(--accent-1)", color: "white", border: "none", padding: "8px 12px", borderRadius: "6px", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}>
-                          Upload Video
+                        <div style={{ marginBottom: "10px" }}>
+                          <label style={{ display: "block", fontSize: "12px", color: "var(--muted)", fontWeight: "600", marginBottom: "5px" }}>Select Video File</label>
+                          <input
+                            type="file"
+                            accept="video/*"
+                            onChange={handleVideoFileChange}
+                            required
+                            style={{ width: "100%", padding: "8px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "13px" }}
+                          />
+                          {videoFile && (
+                            <p style={{ fontSize: "11px", color: "var(--muted)", marginTop: "5px" }}>
+                              Selected: {videoFile.name} ({(videoFile.size / (1024 * 1024)).toFixed(1)} MB)
+                            </p>
+                          )}
+                        </div>
+                        {videoPreview && (
+                          <div style={{ marginBottom: "10px", textAlign: "center" }}>
+                            <video
+                              src={videoPreview}
+                              controls
+                              style={{ maxWidth: "100%", maxHeight: "200px", borderRadius: "6px" }}
+                            />
+                          </div>
+                        )}
+                        <button
+                          type="submit"
+                          disabled={uploadingVideo}
+                          style={{
+                            width: "100%",
+                            background: uploadingVideo ? "#ccc" : "var(--accent-1)",
+                            color: "white",
+                            border: "none",
+                            padding: "8px 12px",
+                            borderRadius: "6px",
+                            cursor: uploadingVideo ? "not-allowed" : "pointer",
+                            fontWeight: "600",
+                            fontSize: "13px"
+                          }}
+                        >
+                          {uploadingVideo ? "Uploading..." : "Upload Video"}
                         </button>
                       </form>
                     </div>

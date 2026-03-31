@@ -23,6 +23,8 @@ export default function Register() {
     subjects: "",
     teachingUpto: "",
     distance: "",
+    minFee: "",
+    maxFee: "",
   });
 
   const [profilePic, setProfilePic] = useState(null);
@@ -132,6 +134,10 @@ export default function Register() {
                   <input name="teachingUpto" placeholder="Teaching ability" onChange={handleChange} />
                   <input name="subjects" placeholder="Subjects expert in" onChange={handleChange} />
                   <input name="distance" placeholder="Distance coverage (km)" onChange={handleChange} />
+                  <div className="grid-2">
+                    <input name="minFee" type="number" placeholder="Min Monthly Fee (₹)" onChange={handleChange} />
+                    <input name="maxFee" type="number" placeholder="Max Monthly Fee (₹)" onChange={handleChange} />
+                  </div>
                 </div>
               )}
 

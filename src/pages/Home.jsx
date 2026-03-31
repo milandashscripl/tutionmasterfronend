@@ -146,26 +146,40 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
               </div>
               
               {/* VIEW SWITCHER */}
-              <div style={{ display: "flex", gap: "5px", background: "#f3f4f6", padding: "4px", borderRadius: "8px" }}>
+              <div style={{ display: "flex", gap: "5px", background: "#f3f4f6", padding: "4px", borderRadius: "8px", flexWrap: "wrap" }}>
                 <button 
                   onClick={() => setViewType("list")}
-                  style={{ border: "none", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "12px", fontWeight: "600", background: viewType === "list" ? "#fff" : "transparent", boxShadow: viewType === "list" ? "0 2px 4px rgba(0,0,0,0.1)" : "none" }}>
-                  List
+                  style={{ border: "none", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "12px", fontWeight: "600", background: viewType === "list" ? "#fff" : "transparent", boxShadow: viewType === "list" ? "0 2px 4px rgba(0,0,0,0.1)" : "none" }}
+                  title="Compact list view">
+                  📋 List
                 </button>
                 <button 
                   onClick={() => setViewType("grid")}
-                  style={{ border: "none", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "12px", fontWeight: "600", background: viewType === "grid" ? "#fff" : "transparent", boxShadow: viewType === "grid" ? "0 2px 4px rgba(0,0,0,0.1)" : "none" }}>
-                  Grid
+                  style={{ border: "none", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "12px", fontWeight: "600", background: viewType === "grid" ? "#fff" : "transparent", boxShadow: viewType === "grid" ? "0 2px 4px rgba(0,0,0,0.1)" : "none" }}
+                  title="Card grid view">
+                  🎴 Grid
+                </button>
+                <button 
+                  onClick={() => setViewType("compact")}
+                  style={{ border: "none", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "12px", fontWeight: "600", background: viewType === "compact" ? "#fff" : "transparent", boxShadow: viewType === "compact" ? "0 2px 4px rgba(0,0,0,0.1)" : "none" }}
+                  title="Compact profile view">
+                  ⚡ Compact
+                </button>
+                <button 
+                  onClick={() => setViewType("detailed")}
+                  style={{ border: "none", padding: "6px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "12px", fontWeight: "600", background: viewType === "detailed" ? "#fff" : "transparent", boxShadow: viewType === "detailed" ? "0 2px 4px rgba(0,0,0,0.1)" : "none" }}
+                  title="Detailed card view">
+                  📊 Detailed
                 </button>
               </div>
             </div>
 
             {/* TEACHER LIST/GRID CONTAINER */}
             <div style={{ 
-              display: viewType === "grid" ? "grid" : "flex", 
-              flexDirection: viewType === "grid" ? "unset" : "column",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", 
-              gap: "15px" 
+              display: viewType === "grid" || viewType === "detailed" ? "grid" : "flex", 
+              flexDirection: viewType === "grid" || viewType === "detailed" ? "unset" : "column",
+              gridTemplateColumns: viewType === "grid" ? "repeat(auto-fill, minmax(280px, 1fr))" : viewType === "detailed" ? "repeat(auto-fill, minmax(320px, 1fr))" : "unset",
+              gap: viewType === "compact" ? "12px" : "15px" 
             }}>
               {matchedTeachers.map((teacher) => {
                 const common = teacher.teacherDetails?.subjectsExpert.filter(s => user.studentDetails?.subjects.includes(s)) || [];
@@ -174,39 +188,63 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
                 return (
                   <div key={teacher._id} style={{ 
                     display: "flex", 
-                    flexDirection: viewType === "grid" ? "column" : "row",
+                    flexDirection: (viewType === "grid" || viewType === "detailed") ? "column" : "row",
                     justifyContent: "space-between", 
-                    alignItems: "center", 
-                    padding: "15px", 
+                    alignItems: (viewType === "grid" || viewType === "detailed") ? "center" : "center", 
+                    padding: viewType === "compact" ? "12px" : "15px", 
                     border: "1px solid rgba(0,0,0,0.05)", 
                     borderRadius: "12px", 
-                    gap: "15px",
-                    textAlign: viewType === "grid" ? "center" : "left",
-                    background: "white"
-                  }}>
+                    gap: viewType === "compact" ? "10px" : "15px",
+                    textAlign: (viewType === "grid" || viewType === "detailed") ? "center" : "left",
+                    background: "white",
+                    transition: "all 0.2s",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
+                  }}
+                  onMouseEnter={(e) => {e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"}}
+                  onMouseLeave={(e) => {e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)"; e.currentTarget.style.transform = "translateY(0)"}}>
                     
-                    <div style={{ display: "flex", flexDirection: viewType === "grid" ? "column" : "row", gap: "15px", alignItems: "center", width: "100%" }}>
-                      <img src={teacher.profilePic?.url || "/default-avatar.png"} style={{ width: viewType === "grid" ? "70px" : "55px", height: viewType === "grid" ? "70px" : "55px", borderRadius: "50%", objectFit: "cover", border: "2px solid var(--accent-1)" }} />
-                      <div>
-                        <div style={{ fontWeight: "700" }}>{teacher.fullName}</div>
-                        <div style={{ color: "#f1c40f", fontSize: "14px", margin: "2px 0" }}>
-                          {"★".repeat(Math.round(rating)) + "☆".repeat(5 - Math.round(rating))}
-                          <span className="muted" style={{ fontSize: "11px", marginLeft: "5px", color: "var(--muted)" }}>({teacher.teacherDetails?.totalReviews || 0})</span>
+                    {viewType === "compact" ? (
+                      // COMPACT VIEW - Single line with minimal info
+                      <div style={{ display: "flex", flexDirection: "row", gap: "12px", alignItems: "center", width: "100%", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", gap: "12px", alignItems: "center", flex: 1, minWidth: 0 }}>
+                          <img src={teacher.profilePic?.url || "/default-avatar.png"} style={{ width: "45px", height: "45px", borderRadius: "50%", objectFit: "cover", border: "2px solid var(--accent-1)", flexShrink: 0 }} />
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontWeight: "700", fontSize: "13px" }}>{teacher.fullName}</div>
+                            <div style={{ color: "#f1c40f", fontSize: "12px", marginTop: "2px" }}>{'★'.repeat(Math.round(rating))}</div>
+                          </div>
                         </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", justifyContent: viewType === "grid" ? "center" : "flex-start" }}>
-                          {common.slice(0, 3).map(s => (
-                            <span key={s} style={{ fontSize: "9px", background: "rgba(201, 163, 94, 0.1)", color: "var(--accent-1)", padding: "2px 6px", borderRadius: "4px", fontWeight: "600" }}>{s}</span>
-                          ))}
+                        <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+                          <button onClick={() => handleViewReviews(teacher)} style={{ background: "#f3f4f6", border: "1px solid #ddd", color: "#333", padding: "6px 10px", borderRadius: "6px", cursor: "pointer", fontSize: "11px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.background = "#e5e7eb"}} onMouseLeave={(e) => {e.target.background = "#f3f4f6"}}>✓ Reviews</button>
+                          <button onClick={() => handleHire(teacher._id)} style={{ background: "var(--accent-1)", color: "#fff", border: "none", padding: "6px 10px", borderRadius: "6px", cursor: "pointer", fontSize: "11px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.opacity = "0.9"}} onMouseLeave={(e) => {e.target.opacity = "1"}}>💼 Hire</button>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      // ORIGINAL / GRID / DETAILED VIEW
+                      <>
+                        <div style={{ display: "flex", flexDirection: (viewType === "grid" || viewType === "detailed") ? "column" : "row", gap: "15px", alignItems: "center", width: "100%" }}>
+                          <img src={teacher.profilePic?.url || "/default-avatar.png"} style={{ width: (viewType === "grid" || viewType === "detailed") ? "70px" : "55px", height: (viewType === "grid" || viewType === "detailed") ? "70px" : "55px", borderRadius: "50%", objectFit: "cover", border: "2px solid var(--accent-1)" }} />
+                          <div>
+                            <div style={{ fontWeight: "700" }}>{teacher.fullName}</div>
+                            <div style={{ color: "#f1c40f", fontSize: "14px", margin: "2px 0" }}>
+                              {"★".repeat(Math.round(rating)) + "☆".repeat(5 - Math.round(rating))}
+                              <span className="muted" style={{ fontSize: "11px", marginLeft: "5px", color: "var(--muted)" }}>({teacher.teacherDetails?.totalReviews || 0})</span>
+                            </div>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", justifyContent: (viewType === "grid" || viewType === "detailed") ? "center" : "flex-start", marginTop: "8px" }}>
+                              {common.slice(0, viewType === "detailed" ? 5 : 3).map(s => (
+                                <span key={s} style={{ fontSize: "9px", background: "rgba(201, 163, 94, 0.1)", color: "var(--accent-1)", padding: "2px 6px", borderRadius: "4px", fontWeight: "600" }}>{s}</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
 
-                    <div style={{ display: "flex", gap: "8px", width: viewType === "grid" ? "100%" : "auto", justifyContent: "center", flexWrap: "wrap" }}>
-                      <button onClick={() => handleViewReviews(teacher)} style={{ flex: viewType === "grid" ? 1 : "none", background: "#f3f4f6", border: "1px solid #ddd", color: "#333", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>Reviews</button>
-                      <button onClick={() => { setSelectedTeacher(teacher); setShowRatingModal(true); }} style={{ flex: viewType === "grid" ? 1 : "none", background: "transparent", border: "1px solid var(--muted)", color: "var(--muted)", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>Rate</button>
-                      <button onClick={() => (window.location.href = "/chats")} style={{ flex: viewType === "grid" ? 1 : "none", background: "transparent", border: "1px solid var(--accent-1)", color: "var(--accent-1)", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>Chat</button>
-                      <button onClick={() => handleHire(teacher._id)} style={{ flex: viewType === "grid" ? 1 : "none", background: "var(--accent-1)", color: "#fff", border: "none", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>Hire</button>
-                    </div>
+                        <div style={{ display: "flex", gap: "8px", width: (viewType === "grid" || viewType === "detailed") ? "100%" : "auto", justifyContent: "center", flexWrap: "wrap", marginTop: viewType === "list" ? "0" : "10px" }}>
+                          <button onClick={() => handleViewReviews(teacher)} style={{ flex: (viewType === "grid" || viewType === "detailed") ? 1 : "none", background: "#f3f4f6", border: "1px solid #ddd", color: "#333", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.style.background = "#e5e7eb"}} onMouseLeave={(e) => {e.target.style.background = "#f3f4f6"}}>Reviews</button>
+                          <button onClick={() => { setSelectedTeacher(teacher); setShowRatingModal(true); }} style={{ flex: (viewType === "grid" || viewType === "detailed") ? 1 : "none", background: "transparent", border: "1px solid var(--muted)", color: "var(--muted)", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.style.background = "rgba(139,121,104,0.05)"}} onMouseLeave={(e) => {e.target.style.background = "transparent"}}>Rate</button>
+                          <button onClick={() => (window.location.href = "/chats")} style={{ flex: (viewType === "grid" || viewType === "detailed") ? 1 : "none", background: "transparent", border: "1px solid var(--accent-1)", color: "var(--accent-1)", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.style.background = "rgba(201,163,94,0.1)"}} onMouseLeave={(e) => {e.target.style.background = "transparent"}}>Chat</button>
+                          <button onClick={() => handleHire(teacher._id)} style={{ flex: (viewType === "grid" || viewType === "detailed") ? 1 : "none", background: "var(--accent-1)", color: "#fff", border: "none", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.style.opacity = "0.9"}} onMouseLeave={(e) => {e.target.style.opacity = "1"}}>Hire</button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 );
               })}

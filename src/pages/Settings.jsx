@@ -21,26 +21,7 @@ export default function Settings({ isSidebarOpen, toggleSidebar }) {
     { name: "gold", label: "Gold Premium", color: "#d4af37" },
   ];
 
- // 1. Keep the fetch useEffect, but simplify it to just setting states
-useEffect(() => {
-  API.get("/user/me")
-    .then((res) => {
-      const userData = res.data;
-      setUser(userData);
-      
-      // Update states from DB
-      if (userData.settings) {
-        setTheme(userData.settings.theme || "light");
-        setDarkMode(userData.settings.darkMode || false);
-        setNotifications(userData.settings.notifications ?? true);
-      }
-    })
-    .catch(() => { window.location.href = "/"; });
-}, []);
-
-// 2. ADD THIS: This triggers the CSS update whenever 'theme' state changes
-useEffect(() => {
-  const themes = {
+  const themesMap = {
     light: { "--bg": "#faf9f7", "--accent-1": "#c9a35e", "--muted": "#8b7968", "--text": "#1f1e1c" },
     ocean: { "--bg": "#f0f4f8", "--accent-1": "#0066cc", "--muted": "#4a90e2", "--text": "#001a4d" },
     forest: { "--bg": "#f0f8f4", "--accent-1": "#1b4332", "--muted": "#2d6a4f", "--text": "#0b2416" },
@@ -51,109 +32,60 @@ useEffect(() => {
     gold: { "--bg": "#fffdf5", "--accent-1": "#d4af37", "--muted": "#dfc577", "--text": "#664c1e" },
   };
 
-  const selected = themes[theme] || themes.light;
-  Object.keys(selected).forEach((key) => {
-    document.documentElement.style.setProperty(key, selected[key]);
-  });
-  localStorage.setItem("appTheme", theme);
-}, [theme]); // Runs every time 'theme' changes
+  // Load user and initial theme from localStorage
+  useEffect(() => {
+    // Load from localStorage first
+    const savedTheme = localStorage.getItem("appTheme");
+    const savedDarkMode = localStorage.getItem("darkMode") === "true";
+    
+    if (savedTheme) setTheme(savedTheme);
+    if (savedDarkMode) setDarkMode(savedDarkMode);
 
-// 3. ADD THIS: This triggers Dark Mode CSS whenever 'darkMode' state changes
-useEffect(() => {
-  localStorage.setItem("darkMode", darkMode);
-  if (darkMode) {
-    document.documentElement.style.setProperty("--text", "#e0e0e0");
-    document.documentElement.style.setProperty("--bg", "#0d0d0d");
-    document.body.style.backgroundColor = "#0d0d0d";
-    document.body.style.color = "#e0e0e0";
-    
-    // Update all card backgrounds
-    document.querySelectorAll(".card").forEach(card => {
-      card.style.backgroundColor = "#1a1a1a";
-      card.style.borderColor = "#333";
-    });
-    
-    // Update input styles
-    document.querySelectorAll("input, textarea, select").forEach(el => {
-      el.style.backgroundColor = "#1a1a1a";
-      el.style.color = "#e0e0e0";
-      el.style.borderColor = "#444";
-    });
-  } else {
-    document.documentElement.style.setProperty("--text", "#1f1e1c");
-    document.documentElement.style.setProperty("--bg", "#faf9f7");
-    document.body.style.backgroundColor = "";
-    document.body.style.color = "";
-    
-    // Reset card backgrounds
-    document.querySelectorAll(".card").forEach(card => {
-      card.style.backgroundColor = "";
-      card.style.borderColor = "";
-    });
-    
-    // Reset input styles
-    document.querySelectorAll("input, textarea, select").forEach(el => {
-      el.style.backgroundColor = "";
-      el.style.color = "";
-      el.style.borderColor = "";
-    });
-  }  
-}, [darkMode]); // Runs every time 'darkMode' changes
+    // Then load from database
+    API.get("/user/me")
+      .then((res) => {
+        const userData = res.data;
+        setUser(userData);
+        
+        // Update states from DB
+        if (userData.settings) {
+          setTheme(userData.settings.theme || savedTheme || "light");
+          setDarkMode(userData.settings.darkMode || savedDarkMode || false);
+          setNotifications(userData.settings.notifications ?? true);
+        }
+      })
+      .catch(() => { window.location.href = "/"; });
+  }, []);
 
-  const updateCSSTheme = (themeName) => {
-    const themes = {
-      light: { "--bg": "#faf9f7", "--accent-1": "#c9a35e", "--muted": "#8b7968", "--text": "#1f1e1c" },
-      ocean: { "--bg": "#f0f4f8", "--accent-1": "#0066cc", "--muted": "#4a90e2", "--text": "#001a4d" },
-      forest: { "--bg": "#f0f8f4", "--accent-1": "#1b4332", "--muted": "#2d6a4f", "--text": "#0b2416" },
-      sunset: { "--bg": "#fff4f0", "--accent-1": "#ff6b35", "--muted": "#ff8a50", "--text": "#8b3415" },
-      amethyst: { "--bg": "#f5f3f8", "--accent-1": "#7b2d94", "--muted": "#a855f7", "--text": "#2d1b4e" },
-      rose: { "--bg": "#fdf2f6", "--accent-1": "#d64161", "--muted": "#f56581", "--text": "#6b1835" },
-      emerald: { "--bg": "#f0fdfb", "--accent-1": "#00a080", "--muted": "#1fc0a9", "--text": "#0d4d3f" },
-      gold: { "--bg": "#fffdf5", "--accent-1": "#d4af37", "--muted": "#dfc577", "--text": "#664c1e" },
-    };
-
-    const selected = themes[themeName] || themes.light;
+  // Apply theme CSS whenever 'theme' changes
+  useEffect(() => {
+    const selected = themesMap[theme] || themesMap.light;
     Object.keys(selected).forEach((key) => {
       document.documentElement.style.setProperty(key, selected[key]);
     });
-    setTheme(themeName);
-    localStorage.setItem("appTheme", themeName);
-  };
+    localStorage.setItem("appTheme", theme);
+  }, [theme]);
 
-  const applyDarkMode = (isDark) => {
-    setDarkMode(isDark);
-    localStorage.setItem("darkMode", isDark);
-    if (isDark) {
+  // Apply dark mode CSS whenever 'darkMode' changes
+  useEffect(() => {
+    localStorage.setItem("darkMode", darkMode);
+    if (darkMode) {
       document.documentElement.style.setProperty("--text", "#e0e0e0");
       document.documentElement.style.setProperty("--bg", "#0d0d0d");
       document.body.style.backgroundColor = "#0d0d0d";
       document.body.style.color = "#e0e0e0";
       
-      // Update all cards
+      // Update all card backgrounds
       document.querySelectorAll(".card").forEach(card => {
         card.style.backgroundColor = "#1a1a1a";
         card.style.borderColor = "#333";
-        card.style.color = "#e0e0e0";
       });
       
-      // Update main content area
-      const main = document.querySelector(".main");
-      if (main) main.style.backgroundColor = "#0d0d0d";
-      
-      // Update inputs
+      // Update input styles
       document.querySelectorAll("input, textarea, select").forEach(el => {
-        if (el.type !== "checkbox" && el.type !== "radio") {
-          el.style.backgroundColor = "#1a1a1a";
-          el.style.color = "#e0e0e0";
-          el.style.borderColor = "#444";
-        }
-      });
-      
-      // Update buttons
-      document.querySelectorAll("button:not(:disabled)").forEach(btn => {
-        if (btn.style.background !== "var(--accent-1)") {
-          btn.style.color = "#e0e0e0";
-        }
+        el.style.backgroundColor = "#1a1a1a";
+        el.style.color = "#e0e0e0";
+        el.style.borderColor = "#444";
       });
     } else {
       document.documentElement.style.setProperty("--text", "#1f1e1c");
@@ -161,31 +93,27 @@ useEffect(() => {
       document.body.style.backgroundColor = "";
       document.body.style.color = "";
       
-      // Reset cards
+      // Reset card backgrounds
       document.querySelectorAll(".card").forEach(card => {
         card.style.backgroundColor = "";
         card.style.borderColor = "";
-        card.style.color = "";
       });
       
-      // Reset main
-      const main = document.querySelector(".main");
-      if (main) main.style.backgroundColor = "";
-      
-      // Reset inputs
+      // Reset input styles
       document.querySelectorAll("input, textarea, select").forEach(el => {
-        if (el.type !== "checkbox" && el.type !== "radio") {
-          el.style.backgroundColor = "";
-          el.style.color = "";
-          el.style.borderColor = "";
-        }
+        el.style.backgroundColor = "";
+        el.style.color = "";
+        el.style.borderColor = "";
       });
-      
-      // Reset buttons
-      document.querySelectorAll("button:not(:disabled)").forEach(btn => {
-        btn.style.color = "";
-      });
-    }
+    }  
+  }, [darkMode]);
+
+  const updateCSSTheme = (themeName) => {
+    setTheme(themeName); // This will trigger the useEffect that applies CSS
+  };
+
+  const applyDarkMode = (isDark) => {
+    setDarkMode(isDark); // This will trigger the useEffect that applies dark mode CSS
   };
 
 const handleSaveSettings = async () => {
@@ -205,10 +133,6 @@ const handleSaveSettings = async () => {
       setTheme(updatedSettings.theme);
       setDarkMode(updatedSettings.darkMode);
       setNotifications(updatedSettings.notifications);
-      
-      // CRITICAL: Manually call the apply functions to see changes immediately
-      updateCSSTheme(updatedSettings.theme);
-      applyDarkMode(updatedSettings.darkMode);
     }
 
     setSaveMessage("Settings saved successfully!");

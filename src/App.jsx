@@ -49,6 +49,7 @@ export default function App() {
         if (res.data) {
           setSiteSettings({
             logoUrl: res.data.logo?.url || "",
+            logo: { url: res.data.logo?.url || "" },
             siteName: res.data.siteName || "TuitionMaster",
             themeColor: res.data.themeColor || "#c9a35e"
           });
@@ -155,9 +156,9 @@ function HeaderComp({ toggleSidebar, siteSettings }) {
 
         {/* --- DYNAMIC LOGO LOGIC --- */}
         <div onClick={() => navigate("/dashboard")} style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
-          {siteSettings.logo?.url ? (
+          {siteSettings.logoUrl ? (
             <img
-              src={siteSettings.logo.url}
+              src={siteSettings.logoUrl}
               alt="Logo"
               style={{ 
                 height: "35px", 

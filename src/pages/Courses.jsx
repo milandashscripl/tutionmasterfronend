@@ -186,6 +186,22 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
     }
   };
 
+  const handleTrackView = async (videoIndex) => {
+    if (!selectedCourse) return;
+    try {
+      const res = await API.post(`/courses/${selectedCourse._id}/video/${videoIndex}/view`);
+      console.log("View tracked:", res.data);
+      
+      // Update the view count in selectedCourse
+      const updatedVideos = selectedCourse.videos.map((video, idx) => 
+        idx === videoIndex ? { ...video, viewCount: res.data.viewCount } : video
+      );
+      setSelectedCourse({ ...selectedCourse, videos: updatedVideos });
+    } catch (err) {
+      console.error("Failed to track view:", err);
+    }
+  };
+
   const handleLike = async () => {
     if (!selectedCourse) return;
     try {
@@ -435,10 +451,10 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
                           <div style={{ flex: 1 }}>
                             <p style={{ margin: "0 0 5px 0", fontWeight: "600" }}>{video.title}</p>
                             <p style={{ margin: "0", fontSize: "12px", color: "var(--muted)" }}>
-                              {video.type === "short" ? "⚡ Short Clip" : "🎬 Full Tutorial"} · {Math.floor(video.duration / 60)} mins
+                              {video.type === "short" ? "⚡ Short Clip" : "🎬 Full Tutorial"} · {Math.floor(video.duration / 60)} mins · 👁️ {video.viewCount || 0} views
                             </p>
                           </div>
-                          <button style={{ background: "var(--accent-1)", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer", fontWeight: "600" }}>
+                          <button onClick={() => handleTrackView(idx)} style={{ background: "var(--accent-1)", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer", fontWeight: "600" }}>
                             ▶ Watch
                           </button>
                         </div>
@@ -507,7 +523,8 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
                   )}
                 </div>
 
-                {/* Engagement Section */}
+                {/* Engagement Section - Only show if user is a student (not the teacher) */}
+                {user._id !== selectedCourse.teacher?._id && (
                 <div style={{ marginBottom: "30px", borderTop: "1px solid #eee", paddingTop: "20px" }}>
                   <div style={{ display: "flex", gap: "15px", marginBottom: "20px" }}>
                     <button onClick={handleLike} style={{ flex: 1, background: selectedCourse.likedBy?.includes(user._id) ? "var(--accent-1)" : "#f3f4f6", color: selectedCourse.likedBy?.includes(user._id) ? "white" : "#333", border: "none", padding: "12px", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}>
@@ -569,6 +586,7 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
                     </div>
                   </div>
                 </div>
+                )}
               </div>
 
               {/* Sidebar Info */}

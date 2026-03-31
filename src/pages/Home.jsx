@@ -76,12 +76,35 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
     }
   };
 
-  const handleHire = async (teacherId) => {
+  const getExpectedHireAmount = (teacher) => {
+    const standard = user?.studentDetails?.standard;
+    if (!standard) return null;
+
+    const pricingEntry = teacher?.teacherDetails?.pricing?.find((item) => item.standard === standard);
+    const minFee = teacher?.teacherDetails?.fees?.minFee || 0;
+    const baseFee = pricingEntry?.price || minFee;
+
+    const rating = Number(teacher?.teacherDetails?.averageRating) || 0;
+    const multiplier = 1 + Math.max(0, rating - 4) * 0.1;
+
+    return baseFee > 0 ? Math.ceil(baseFee * multiplier) : null;
+  };
+
+  const handleHire = async (teacher) => {
     try {
-      await API.post("/user/hire", { teacherId });
-      alert("Hiring request sent!");
+      const amount = getExpectedHireAmount(teacher);
+      if (!amount) {
+        return alert("Unable to calculate hiring fee. Please ensure your profile standard and teacher pricing are set.");
+      }
+
+      const res = await API.post("/user/hire", { teacherId: teacher._id, amount });
+      alert(`${res.data?.message || "Teacher hired successfully."} You paid ₹${amount}`);
+
+      // Optionally refresh matches
+      const matchRes = await API.get("/user/matches");
+      setMatchedTeachers(matchRes.data);
     } catch (err) {
-      alert("Failed to hire: " + err.message);
+      alert("Failed to hire: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -215,7 +238,7 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
                         </div>
                         <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
                           <button onClick={() => handleViewReviews(teacher)} style={{ background: "#f3f4f6", border: "1px solid #ddd", color: "#333", padding: "6px 10px", borderRadius: "6px", cursor: "pointer", fontSize: "11px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.background = "#e5e7eb"}} onMouseLeave={(e) => {e.target.background = "#f3f4f6"}}>✓ Reviews</button>
-                          <button onClick={() => handleHire(teacher._id)} style={{ background: "var(--accent-1)", color: "#fff", border: "none", padding: "6px 10px", borderRadius: "6px", cursor: "pointer", fontSize: "11px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.opacity = "0.9"}} onMouseLeave={(e) => {e.target.opacity = "1"}}>💼 Hire</button>
+                          <button onClick={() => handleHire(teacher)} style={{ background: "var(--accent-1)", color: "#fff", border: "none", padding: "6px 10px", borderRadius: "6px", cursor: "pointer", fontSize: "11px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.opacity = "0.9"}} onMouseLeave={(e) => {e.target.opacity = "1"}}>💼 Hire</button>
                         </div>
                       </div>
                     ) : (
@@ -241,7 +264,7 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
                           <button onClick={() => handleViewReviews(teacher)} style={{ flex: (viewType === "grid" || viewType === "detailed") ? 1 : "none", background: "#f3f4f6", border: "1px solid #ddd", color: "#333", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.style.background = "#e5e7eb"}} onMouseLeave={(e) => {e.target.style.background = "#f3f4f6"}}>Reviews</button>
                           <button onClick={() => { setSelectedTeacher(teacher); setShowRatingModal(true); }} style={{ flex: (viewType === "grid" || viewType === "detailed") ? 1 : "none", background: "transparent", border: "1px solid var(--muted)", color: "var(--muted)", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.style.background = "rgba(139,121,104,0.05)"}} onMouseLeave={(e) => {e.target.style.background = "transparent"}}>Rate</button>
                           <button onClick={() => (window.location.href = "/chats")} style={{ flex: (viewType === "grid" || viewType === "detailed") ? 1 : "none", background: "transparent", border: "1px solid var(--accent-1)", color: "var(--accent-1)", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.style.background = "rgba(201,163,94,0.1)"}} onMouseLeave={(e) => {e.target.style.background = "transparent"}}>Chat</button>
-                          <button onClick={() => handleHire(teacher._id)} style={{ flex: (viewType === "grid" || viewType === "detailed") ? 1 : "none", background: "var(--accent-1)", color: "#fff", border: "none", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.style.opacity = "0.9"}} onMouseLeave={(e) => {e.target.style.opacity = "1"}}>Hire</button>
+                          <button onClick={() => handleHire(teacher)} style={{ flex: (viewType === "grid" || viewType === "detailed") ? 1 : "none", background: "var(--accent-1)", color: "#fff", border: "none", padding: "8px 15px", borderRadius: "8px", cursor: "pointer", fontSize: "12px", fontWeight: "600", transition: "all 0.2s" }} onMouseEnter={(e) => {e.target.style.opacity = "0.9"}} onMouseLeave={(e) => {e.target.style.opacity = "1"}}>Hire</button>
                         </div>
                       </>
                     )}

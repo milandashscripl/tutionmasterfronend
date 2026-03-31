@@ -25,6 +25,7 @@ export default function Register() {
     distance: "",
     minFee: "",
     maxFee: "",
+    pricing: "", // Added for the new backend logic
   });
 
   const [profilePic, setProfilePic] = useState(null);
@@ -46,8 +47,8 @@ export default function Register() {
     e.preventDefault();
     setError("");
 
-    if (!form.fullName || !form.email || !form.phone || !form.password || !form.registrationType) {
-      return setError("Please fill required fields");
+    if (!form.fullName || !form.phone || !form.password || !form.registrationType) {
+      return setError("Please fill required fields (Name, Phone, Password, Type)");
     }
 
     setLoading(true);
@@ -75,7 +76,6 @@ export default function Register() {
 
   return (
     <div className="auth-split-wrapper">
-      {/* VISUAL SIDE */}
       <div className="auth-visual-pane">
         <CanvasBg />
         <div className="user-glass-card">
@@ -87,7 +87,6 @@ export default function Register() {
         </div>
       </div>
 
-      {/* FORM SIDE */}
       <div className="auth-form-pane">
         <div style={{ maxWidth: 500, width: '100%', padding: '40px 0' }}>
           <div className="card auth-card">
@@ -95,18 +94,18 @@ export default function Register() {
             <p className="muted" style={{ marginBottom: 20 }}>Please fill in your details</p>
 
             <form onSubmit={handleRegister}>
-              <input name="fullName" placeholder="Full Name" onChange={handleChange} />
+              <input name="fullName" placeholder="Full Name *" onChange={handleChange} />
               <input name="email" type="email" placeholder="Email" onChange={handleChange} />
-              <input name="phone" placeholder="Phone" onChange={handleChange} />
+              <input name="phone" placeholder="Phone *" onChange={handleChange} />
 
               <select name="registrationType" onChange={handleChange} value={form.registrationType}>
-                <option value="">Select Type</option>
+                <option value="">Select Type *</option>
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
               </select>
 
               <input name="aadhar" placeholder="Aadhar Number" onChange={handleChange} />
-              <input type="password" name="password" placeholder="Password" onChange={handleChange} />
+              <input type="password" name="password" placeholder="Password *" onChange={handleChange} />
 
               <div className="grid-2">
                 <select name="gender" onChange={handleChange}>
@@ -117,27 +116,35 @@ export default function Register() {
                 <input name="age" placeholder="Age" onChange={handleChange} />
               </div>
 
-              <input name="addressText" placeholder="Address" onChange={handleChange} />
+              <input name="addressText" placeholder="Full Address" onChange={handleChange} />
 
-              {/* STUDENT FIELDS */}
               {form.registrationType === "student" && (
                 <div className="reveal-visible">
-                  <input name="standard" placeholder="Class / Standard" onChange={handleChange} />
-                  <input name="board" placeholder="Board (CBSE / CHSE)" onChange={handleChange} />
-                  <input name="subjects" placeholder="Subjects (Math, Physics etc)" onChange={handleChange} />
+                  <input name="standard" placeholder="Current Class (e.g. 10th)" onChange={handleChange} />
+                  <input name="board" placeholder="Board (CBSE / ICSE / State)" onChange={handleChange} />
+                  <input name="subjects" placeholder="Subjects needed (Math, Science)" onChange={handleChange} />
                 </div>
               )}
 
-              {/* TEACHER FIELDS */}
               {form.registrationType === "teacher" && (
                 <div className="reveal-visible">
-                  <input name="teachingUpto" placeholder="Teaching ability" onChange={handleChange} />
-                  <input name="subjects" placeholder="Subjects expert in" onChange={handleChange} />
+                  <input name="teachingUpto" placeholder="Teaching ability (e.g. Upto 12th)" onChange={handleChange} />
+                  <input name="subjects" placeholder="Your Expert Subjects (Comma separated)" onChange={handleChange} />
                   <input name="distance" placeholder="Distance coverage (km)" onChange={handleChange} />
                   <div className="grid-2">
-                    <input name="minFee" type="number" placeholder="Min Monthly Fee (₹)" onChange={handleChange} />
-                    <input name="maxFee" type="number" placeholder="Max Monthly Fee (₹)" onChange={handleChange} />
+                    <input name="minFee" type="number" placeholder="Min Fee (₹)" onChange={handleChange} />
+                    <input name="maxFee" type="number" placeholder="Max Fee (₹)" onChange={handleChange} />
                   </div>
+                  {/* IMPORTANT NEW FIELD */}
+                  <input 
+                    name="pricing" 
+                    placeholder="Standard Pricing (e.g. 10:2500, 11:3000)" 
+                    onChange={handleChange} 
+                    title="Format: Class:Price, Class:Price"
+                  />
+                  <small className="muted" style={{ fontSize: '10px', display: 'block', marginBottom: '10px' }}>
+                    Use format: Class:Price (e.g. 10:2000, 12:3500)
+                  </small>
                 </div>
               )}
 

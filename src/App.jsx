@@ -22,6 +22,8 @@ import TeacherPayments from "./pages/TeacherPayments";
 import LeaveRequests from "./pages/LeaveRequests";
 import Chapters from "./pages/Chapters";
 import AdminLeaveManagement from "./pages/AdminLeaveManagement";
+import TeacherBidding from "./pages/TeacherBidding";
+import StudentBids from "./pages/StudentBids";
 
 /* ADMIN IMPORTS */
 import AdminRoute from "./components/AdminRoute";
@@ -121,6 +123,14 @@ export default function App() {
           <Route
             path="/leave-requests"
             element={<LeaveRequests isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
+          />
+          <Route
+            path="/teacher-bidding"
+            element={<TeacherBidding isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
+          />
+          <Route
+            path="/student-bids"
+            element={<StudentBids isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
           />
           <Route
             path="/profile"

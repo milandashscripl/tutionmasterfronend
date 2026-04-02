@@ -27,6 +27,7 @@ export default function Sidebar({ user, isOpen, onClose }) {
     if (role === 'student') {
       return [
         ...baseItems,
+        { key: "bids", label: "Teacher Bids", icon: "💰", path: "/student-bids" },
         { key: "attendance", label: "My Attendance", icon: "📊", path: "/attendance" },
         { key: "payments", label: "My Payments", icon: "💳", path: "/payments" },
         { key: "profile", label: "Profile", icon: "👤", path: "/profile" },
@@ -35,6 +36,7 @@ export default function Sidebar({ user, isOpen, onClose }) {
     } else if (role === 'teacher') {
       return [
         ...baseItems,
+        { key: "bidding", label: "Find Students", icon: "🔍", path: "/teacher-bidding" },
         { key: "attendance", label: "Attendance", icon: "📊", path: "/teacher-attendance" },
         { key: "payments", label: "Payments", icon: "💳", path: "/teacher-payments" },
         { key: "leaves", label: "Leave Requests", icon: "📅", path: "/leave-requests" },

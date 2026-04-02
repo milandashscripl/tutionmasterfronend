@@ -158,7 +158,7 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
       setCourses(courses.map(c => c._id === res.data._id ? res.data : c));
 
       // Reset form
-      setVideoForm({ title: "", description: "", url: "", duration: "", type: "long" });
+      setVideoForm({ title: "", description: "", url: "", duration: "", type: "short" });
       setVideoFile(null);
       if (videoPreview) {
         URL.revokeObjectURL(videoPreview);
@@ -469,10 +469,7 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
                       <form onSubmit={handleAddVideo}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
                           <input placeholder="Video Title" value={videoForm.title} onChange={(e) => setVideoForm({ ...videoForm, title: e.target.value })} required style={{ padding: "8px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "13px" }} />
-                          <select value={videoForm.type} onChange={(e) => setVideoForm({ ...videoForm, type: e.target.value })} style={{ padding: "8px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "13px" }}>
-                            <option value="short">Short Clip</option>
-                            <option value="long">Full Tutorial</option>
-                          </select>
+                          <input value="Short Clip (Instagram/YouTube Shorts)" readOnly style={{ padding: "8px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "13px", backgroundColor: "#f5f5f5" }} />
                         </div>
                         <div style={{ marginBottom: "10px" }}>
                           <input type="number" placeholder="Duration (seconds)" value={videoForm.duration} onChange={(e) => setVideoForm({ ...videoForm, duration: e.target.value })} required style={{ width: "100%", padding: "8px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "13px" }} />

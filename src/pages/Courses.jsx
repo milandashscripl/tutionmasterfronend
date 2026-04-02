@@ -32,6 +32,9 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
   const [videoPreview, setVideoPreview] = useState("");
   const [uploadingVideo, setUploadingVideo] = useState(false);
 
+  // Video player states
+  const [playingVideo, setPlayingVideo] = useState(null); // { video, index }
+
   // Handle video file selection
   const handleVideoFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -188,17 +191,33 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
 
   const handleTrackView = async (videoIndex) => {
     if (!selectedCourse) return;
+
+    const video = selectedCourse.videos[videoIndex];
+    if (!video) return;
+
+    // Check if video has a valid URL (not placeholder)
+    if (video.url && video.url.includes("placeholder")) {
+      alert("This video is still processing. Please try again later.");
+      return;
+    }
+
     try {
+      // Track the view
       const res = await API.post(`/courses/${selectedCourse._id}/video/${videoIndex}/view`);
       console.log("View tracked:", res.data);
-      
+
       // Update the view count in selectedCourse
-      const updatedVideos = selectedCourse.videos.map((video, idx) => 
-        idx === videoIndex ? { ...video, viewCount: res.data.viewCount } : video
+      const updatedVideos = selectedCourse.videos.map((v, idx) =>
+        idx === videoIndex ? { ...v, viewCount: res.data.viewCount } : v
       );
       setSelectedCourse({ ...selectedCourse, videos: updatedVideos });
+
+      // Open video player
+      setPlayingVideo({ video, index: videoIndex });
     } catch (err) {
       console.error("Failed to track view:", err);
+      // Still open video player even if tracking fails
+      setPlayingVideo({ video, index: videoIndex });
     }
   };
 
@@ -453,26 +472,20 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
                             <p style={{ margin: "0", fontSize: "12px", color: "var(--muted)" }}>
                               {video.type === "short" ? "⚡ Short Clip" : "🎬 Full Tutorial"} · {Math.floor(video.duration / 60)} mins · 👁️ {video.viewCount || 0} views
                             </p>
-                            {video.url && video.url.includes("placeholder") && (
-                              <p style={{ margin: "5px 0 0 0", fontSize: "11px", color: "#e74c3c" }}>
-                                ⚠️ Video processing - will be available soon
-                              </p>
-                            )}
                           </div>
                           <button
                             onClick={() => handleTrackView(idx)}
-                            disabled={video.url && video.url.includes("placeholder")}
                             style={{
-                              background: video.url && video.url.includes("placeholder") ? "#ccc" : "var(--accent-1)",
+                              background: "var(--accent-1)",
                               color: "white",
                               border: "none",
                               padding: "8px 16px",
                               borderRadius: "6px",
-                              cursor: video.url && video.url.includes("placeholder") ? "not-allowed" : "pointer",
+                              cursor: "pointer",
                               fontWeight: "600"
                             }}
                           >
-                            {video.url && video.url.includes("placeholder") ? "Processing..." : "▶ Watch"}
+                            ▶ Watch
                           </button>
                         </div>
                       ))}
@@ -652,6 +665,85 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
           </div>
         )}
       </main>
+
+      {/* Video Player Modal */}
+      {playingVideo && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.9)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "20px",
+          }}
+          onClick={() => setPlayingVideo(null)}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "12px",
+              padding: "20px",
+              maxWidth: "90vw",
+              maxHeight: "90vh",
+              width: "100%",
+              position: "relative",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+              <h3 style={{ margin: 0, fontSize: "18px" }}>{playingVideo.video.title}</h3>
+              <button
+                onClick={() => setPlayingVideo(null)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                  color: "#666",
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ textAlign: "center" }}>
+              <video
+                controls
+                autoPlay
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "70vh",
+                  borderRadius: "8px",
+                }}
+                src={playingVideo.video.url}
+                poster={playingVideo.video.thumbnail}
+                onError={(e) => {
+                  console.error("Video failed to load:", e);
+                  alert("Failed to load video. The video might still be processing.");
+                  setPlayingVideo(null);
+                }}
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+
+            <div style={{ marginTop: "15px", textAlign: "center" }}>
+              <p style={{ margin: "5px 0", fontSize: "14px", color: "#666" }}>
+                {playingVideo.video.description || "No description available"}
+              </p>
+              <p style={{ margin: "5px 0", fontSize: "12px", color: "#999" }}>
+                👁️ {playingVideo.video.viewCount || 0} views • {Math.floor((playingVideo.video.duration || 0) / 60)} mins
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

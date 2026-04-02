@@ -5,6 +5,7 @@ import Sidebar from "../components/Sidebar";
 export default function Home({ isSidebarOpen, toggleSidebar }) {
   const [user, setUser] = useState(null);
   const [matchedTeachers, setMatchedTeachers] = useState([]);
+  const [teacherSuggestions, setTeacherSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewType, setViewType] = useState("list"); // 'list' or 'grid'
 
@@ -31,6 +32,17 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
         if (userRes.data.registrationType === "student") {
           const matchRes = await API.get("/user/matches");
           setMatchedTeachers(matchRes.data);
+        } else if (userRes.data.registrationType === "teacher") {
+          try {
+            const suggestionRes = await API.get("/user/suggestions");
+            setTeacherSuggestions(suggestionRes.data);
+          } catch (err) {
+            if (err.response?.status === 403) {
+              console.warn("Teacher suggestions require premium membership", err.response.data.message);
+            } else {
+              console.error("Could not load suggestions:", err);
+            }
+          }
         }
       } catch (err) {
         console.error("Dashboard load error:", err);
@@ -108,6 +120,21 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
     }
   };
 
+  const handlePurchaseMembership = async (membershipType) => {
+    try {
+      const res = await API.post("/user/membership", { type: membershipType, months: 1 });
+      alert(`Membership activated: ${res.data.membership}. Expires ${new Date(res.data.expiry).toLocaleDateString()}`);
+      const updatedUser = await API.get("/user/me");
+      setUser(updatedUser.data);
+      if (membershipType === "teacher_premium") {
+        const suggestions = await API.get("/user/suggestions");
+        setTeacherSuggestions(suggestions.data);
+      }
+    } catch (err) {
+      alert("Failed to purchase membership: " + (err.response?.data?.message || err.message));
+    }
+  };
+
   const applyGlobalTheme = (themeName, isDark) => {
     const themes = {
       light: { "--bg": "#faf9f7", "--accent-1": "#c9a35e", "--muted": "#8b7968", "--text": "#1f1e1c" },
@@ -156,6 +183,17 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
             <h4>Joined</h4>
             <div className="stat-number">{new Date(user.createdAt).getFullYear()}</div>
             <div className="muted">Member since</div>
+          </div>
+          <div className="stat-card">
+            <h4>Membership</h4>
+            <div className="stat-number" style={{ fontSize: "1rem", color: user.membership?.includes("premium") ? "#16a34a" : "#6b7280" }}>{user.membership || "free"}</div>
+            <div className="muted">{user.membershipExpiry ? new Date(user.membershipExpiry).toLocaleDateString() : "No expiry"}</div>
+            {user.membership !== "student_premium" && user.registrationType === "student" && (
+              <button onClick={() => handlePurchaseMembership("student_premium")} style={{ marginTop: "10px", padding: "6px 10px", background: "#2563eb", color: "white", border: "none", borderRadius: "6px", cursor: "pointer" }}>Buy Student Premium</button>
+            )}
+            {user.membership !== "teacher_premium" && user.registrationType === "teacher" && (
+              <button onClick={() => handlePurchaseMembership("teacher_premium")} style={{ marginTop: "10px", padding: "6px 10px", background: "#2563eb", color: "white", border: "none", borderRadius: "6px", cursor: "pointer" }}>Buy Teacher Premium</button>
+            )}
           </div>
         </div>
 
@@ -272,6 +310,24 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {user.registrationType === "teacher" && (
+          <div className="card" style={{ marginTop: "20px", padding: "20px" }}>
+            <h3>High-paying Student Suggestions</h3>
+            {teacherSuggestions.length === 0 ? (
+              <p style={{ color: "#6b7280", marginTop: "10px" }}>No suggestions available. Purchase Teacher Premium to unlock student leads.</p>
+            ) : (
+              <ul style={{ listStyle: "none", padding: 0, marginTop: "10px" }}>
+                {teacherSuggestions.map((student) => (
+                  <li key={student._id} style={{ marginBottom: "12px", borderBottom: "1px solid #eee", paddingBottom: "10px" }}>
+                    <strong>{student.fullName}</strong> • {student.email} • {student.phone}
+                    <div style={{ fontSize: "12px", color: "#4b5563" }}>Standard: {student.studentDetails?.standard || "N/A"} • Matched subjects: {student.matchingSubjectsCount}</div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 

@@ -85,6 +85,13 @@ export default function AdminLandingPage() {
           imageFile: fileUploads['aboutImage'] ? 'aboutImage' : null,
           existingImageUrl: !fileUploads['aboutImage'] ? settings.aboutSection.imageUrl : null
         },
+        premiumConfig: {
+          studentPremiumPrice: Number(settings.premiumConfig?.studentPremiumPrice || 0),
+          teacherPremiumPrice: Number(settings.premiumConfig?.teacherPremiumPrice || 0),
+          highRatedTeacherThreshold: Number(settings.premiumConfig?.highRatedTeacherThreshold || 4.5),
+          highPayingStudentThreshold: Number(settings.premiumConfig?.highPayingStudentThreshold || 4.5),
+          premiumDurationDays: Number(settings.premiumConfig?.premiumDurationDays || 30)
+        },
         howItWorks: settings.howItWorks,
         testimonials: settings.testimonials,
         contactSection: settings.contactSection,
@@ -194,7 +201,7 @@ export default function AdminLandingPage() {
 
         {/* Tab Navigation */}
         <div style={{ display: 'flex', gap: '10px', marginBottom: '30px', borderBottom: '2px solid #eee', paddingBottom: '0' }}>
-          {['hero', 'about', 'howItWorks', 'testimonials', 'contact', 'footer'].map(tab => (
+          {['hero', 'about', 'howItWorks', 'testimonials', 'contact', 'footer', 'premium'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -414,6 +421,71 @@ export default function AdminLandingPage() {
                 </p>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Premium Config Tab */}
+        {activeTab === 'premium' && (
+          <div>
+            <h3 style={{ marginBottom: '20px' }}>Premium Membership Configuration</h3>
+
+            <div style={{ display: 'grid', gap: '15px', gridTemplateColumns: '1fr 1fr', marginBottom: '15px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Student Premium Price (₹)</label>
+                <input
+                  type="number"
+                  value={settings.premiumConfig?.studentPremiumPrice || 0}
+                  onChange={(e) => updateSettings('premiumConfig.studentPremiumPrice', Number(e.target.value))}
+                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Teacher Premium Price (₹)</label>
+                <input
+                  type="number"
+                  value={settings.premiumConfig?.teacherPremiumPrice || 0}
+                  onChange={(e) => updateSettings('premiumConfig.teacherPremiumPrice', Number(e.target.value))}
+                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gap: '15px', gridTemplateColumns: '1fr 1fr', marginBottom: '15px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>High-Rated Teacher Threshold</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={settings.premiumConfig?.highRatedTeacherThreshold || 4.5}
+                  onChange={(e) => updateSettings('premiumConfig.highRatedTeacherThreshold', Number(e.target.value))}
+                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>High-Paying Student Threshold (rating)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={settings.premiumConfig?.highPayingStudentThreshold || 4.5}
+                  onChange={(e) => updateSettings('premiumConfig.highPayingStudentThreshold', Number(e.target.value))}
+                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Premium Duration (days)</label>
+              <input
+                type="number"
+                value={settings.premiumConfig?.premiumDurationDays || 30}
+                onChange={(e) => updateSettings('premiumConfig.premiumDurationDays', Number(e.target.value))}
+                style={{ width: '220px', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+              />
+            </div>
+
+            <p style={{ color: '#6b7280', fontSize: '13px' }}>
+              Students need student premium to hire teachers with rating above threshold, and teachers need teacher premium to access high-paying student suggestions.
+            </p>
           </div>
         )}
 

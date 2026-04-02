@@ -453,9 +453,26 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
                             <p style={{ margin: "0", fontSize: "12px", color: "var(--muted)" }}>
                               {video.type === "short" ? "⚡ Short Clip" : "🎬 Full Tutorial"} · {Math.floor(video.duration / 60)} mins · 👁️ {video.viewCount || 0} views
                             </p>
+                            {video.url && video.url.includes("placeholder") && (
+                              <p style={{ margin: "5px 0 0 0", fontSize: "11px", color: "#e74c3c" }}>
+                                ⚠️ Video processing - will be available soon
+                              </p>
+                            )}
                           </div>
-                          <button onClick={() => handleTrackView(idx)} style={{ background: "var(--accent-1)", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer", fontWeight: "600" }}>
-                            ▶ Watch
+                          <button
+                            onClick={() => handleTrackView(idx)}
+                            disabled={video.url && video.url.includes("placeholder")}
+                            style={{
+                              background: video.url && video.url.includes("placeholder") ? "#ccc" : "var(--accent-1)",
+                              color: "white",
+                              border: "none",
+                              padding: "8px 16px",
+                              borderRadius: "6px",
+                              cursor: video.url && video.url.includes("placeholder") ? "not-allowed" : "pointer",
+                              fontWeight: "600"
+                            }}
+                          >
+                            {video.url && video.url.includes("placeholder") ? "Processing..." : "▶ Watch"}
                           </button>
                         </div>
                       ))}

@@ -5,7 +5,11 @@ export default function AdminSidebar({ isSidebarOpen, toggleSidebar }) {
   const navigate = useNavigate();
 
   const menus = [
-    { name: "Dashboard", path: "/admin" },
+    { name: "Dashboard", path: "/admin/dashboard" },
+    { name: "Students", path: "/admin/students" },
+    { name: "Teachers", path: "/admin/teachers" },
+    { name: "Chapters", path: "/admin/chapters" },
+    { name: "Leave Management", path: "/admin/leaves" },
     { name: "User Requests", path: "/admin/user-requests" },
     { name: "Landing Page", path: "/admin/landing-page" },
     { name: "App Settings", path: "/admin/app-settings" }

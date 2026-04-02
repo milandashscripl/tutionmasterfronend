@@ -14,6 +14,15 @@ import Courses from "./pages/Courses";
 import Settings from "./pages/Settings";
 import LandingPage from "./pages/LandingPage";
 
+/* NEW PAGE IMPORTS */
+import Attendance from "./pages/Attendance";
+import TeacherAttendance from "./pages/TeacherAttendance";
+import Payments from "./pages/Payments";
+import TeacherPayments from "./pages/TeacherPayments";
+import LeaveRequests from "./pages/LeaveRequests";
+import Chapters from "./pages/Chapters";
+import AdminLeaveManagement from "./pages/AdminLeaveManagement";
+
 /* ADMIN IMPORTS */
 import AdminRoute from "./components/AdminRoute";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -21,6 +30,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserRequests from "./pages/admin/UserRequests";
 import AppSettings from "./pages/admin/AdminSettings";
 import AdminLandingPage from "./pages/admin/AdminLandingPage";
+import StudentsTable from "./pages/admin/StudentsTable";
+import TeachersTable from "./pages/admin/TeachersTable";
 
 /* API UTILS */
 import API from "./api/api";
@@ -92,6 +103,26 @@ export default function App() {
             element={<Courses isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
           />
           <Route
+            path="/attendance"
+            element={<Attendance isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
+          />
+          <Route
+            path="/teacher-attendance"
+            element={<TeacherAttendance isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
+          />
+          <Route
+            path="/payments"
+            element={<Payments isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
+          />
+          <Route
+            path="/teacher-payments"
+            element={<TeacherPayments isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
+          />
+          <Route
+            path="/leave-requests"
+            element={<LeaveRequests isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
+          />
+          <Route
             path="/profile"
             element={<Profile isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
           />
@@ -110,6 +141,11 @@ export default function App() {
             }
           >
             <Route index element={<AdminDashboard />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="students" element={<StudentsTable />} />
+            <Route path="teachers" element={<TeachersTable />} />
+            <Route path="chapters" element={<Chapters />} />
+            <Route path="leaves" element={<AdminLeaveManagement />} />
             <Route path="user-requests" element={<UserRequests />} />
             <Route path="app-settings" element={<AppSettings />} />
             <Route path="landing-page" element={<AdminLandingPage />} />
@@ -133,6 +169,11 @@ function HeaderComp({ toggleSidebar, siteSettings }) {
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/chats") ||
     location.pathname.startsWith("/courses") ||
+    location.pathname.startsWith("/attendance") ||
+    location.pathname.startsWith("/teacher-attendance") ||
+    location.pathname.startsWith("/payments") ||
+    location.pathname.startsWith("/teacher-payments") ||
+    location.pathname.startsWith("/leave-requests") ||
     location.pathname.startsWith("/profile") ||
     location.pathname.startsWith("/settings") ||
     location.pathname.startsWith("/admin");

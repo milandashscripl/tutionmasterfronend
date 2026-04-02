@@ -34,14 +34,16 @@ export default function Profile({ isSidebarOpen, toggleSidebar }) {
       }));
     } 
     // 2. Handle Student-specific nested fields
-    else if (["standard", "board", "subjects"].includes(name)) {
+    else if (["standard", "board", "subjects", "desiredMinFee", "desiredMaxFee"].includes(name)) {
       setForm((prev) => ({
         ...prev,
         studentDetails: {
           ...(prev.studentDetails || {}),
           [name]: name === "subjects" 
             ? value.split(",").map(s => s.trim()) 
-            : value,
+            : name === "desiredMinFee" || name === "desiredMaxFee"
+              ? Number(value)
+              : value,
         },
       }));
     } 
@@ -148,6 +150,16 @@ export default function Profile({ isSidebarOpen, toggleSidebar }) {
                     </div>
                   </div>
                 )}
+
+                {user.registrationType === "student" && (
+                  <div style={{ gridColumn: "1 / -1", background: "#f0f5ff", padding: "20px", borderRadius: "12px", marginTop: "10px" }}>
+                    <h4 style={{ margin: "0 0 15px 0", color: "#1d4ed8" }}>Preferred Teaching Budget</h4>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+                      <InfoItem label="Min Price" value={`₹${user.studentDetails?.desiredMinFee || 0}`} />
+                      <InfoItem label="Max Price" value={`₹${user.studentDetails?.desiredMaxFee || 0}`} />
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               /* EDIT MODE */
@@ -176,6 +188,16 @@ export default function Profile({ isSidebarOpen, toggleSidebar }) {
                       </div>
                       <Input label="Teaching Upto" name="teachingUpto" defaultValue={form.teacherDetails?.teachingUpto} onChange={handleChange} />
                       <Input label="Distance (km)" name="distance" type="number" defaultValue={form.teacherDetails?.distance} onChange={handleChange} />
+                    </div>
+                  </div>
+                )}
+
+                {user.registrationType === "student" && (
+                  <div style={{ padding: "20px", border: "1px solid #e2e8f0", borderRadius: "12px" }}>
+                    <h4 style={{ marginTop: 0 }}>Student Fee Range</h4>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+                      <Input label="Desired Min Fee (₹)" name="desiredMinFee" type="number" defaultValue={form.studentDetails?.desiredMinFee} onChange={handleChange} />
+                      <Input label="Desired Max Fee (₹)" name="desiredMaxFee" type="number" defaultValue={form.studentDetails?.desiredMaxFee} onChange={handleChange} />
                     </div>
                   </div>
                 )}

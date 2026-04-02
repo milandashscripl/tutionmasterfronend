@@ -31,7 +31,11 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
 
         if (userRes.data.registrationType === "student") {
           const matchRes = await API.get("/user/matches");
-          setMatchedTeachers(matchRes.data);
+          if (Array.isArray(matchRes.data)) {
+            setMatchedTeachers(matchRes.data);
+          } else if (matchRes.data.matched) {
+            setMatchedTeachers(matchRes.data.matched);
+          }
         } else if (userRes.data.registrationType === "teacher") {
           try {
             const suggestionRes = await API.get("/user/suggestions");
@@ -285,7 +289,12 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
                         <div style={{ display: "flex", flexDirection: (viewType === "grid" || viewType === "detailed") ? "column" : "row", gap: "15px", alignItems: "center", width: "100%" }}>
                           <img src={teacher.profilePic?.url || "/default-avatar.png"} style={{ width: (viewType === "grid" || viewType === "detailed") ? "70px" : "55px", height: (viewType === "grid" || viewType === "detailed") ? "70px" : "55px", borderRadius: "50%", objectFit: "cover", border: "2px solid var(--accent-1)" }} />
                           <div>
-                            <div style={{ fontWeight: "700" }}>{teacher.fullName}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: (viewType === 'grid' || viewType === 'detailed') ? 'center' : 'flex-start', gap: '8px', fontWeight: '700' }}>
+                              <span>{teacher.fullName}</span>
+                              {teacher.membership === 'teacher_premium' && (
+                                <span style={{ background: '#fde68a', color: '#92400e', fontSize: '10px', padding: '2px 6px', borderRadius: '999px', fontWeight: '700' }}>Premium</span>
+                              )}
+                            </div>
                             <div style={{ color: "#f1c40f", fontSize: "14px", margin: "2px 0" }}>
                               {"★".repeat(Math.round(rating)) + "☆".repeat(5 - Math.round(rating))}
                               <span className="muted" style={{ fontSize: "11px", marginLeft: "5px", color: "var(--muted)" }}>({teacher.teacherDetails?.totalReviews || 0})</span>

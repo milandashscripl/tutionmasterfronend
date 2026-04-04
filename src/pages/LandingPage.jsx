@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import API from "../api/api"; 
+import Loader from "../components/Loader";
 
 export default function LandingPage() {
   const [isMenuOpen, setMenuOpen] = useState(false);
@@ -90,6 +91,8 @@ export default function LandingPage() {
     };
     fetchData();
   }, []);
+
+  if (loading) return <Loader message="Loading landing page..." className="mx-auto" />;
 
   useEffect(() => {
     if (loading) return;

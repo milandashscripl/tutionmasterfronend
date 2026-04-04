@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import API from "../api/api";
 import Sidebar from "../components/Sidebar";
+import Loader from "../components/Loader";
 import { io } from "socket.io-client";
 
 const SOCKET_URL =
@@ -179,7 +180,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
   const selectedChatData = chats.find((c) => c._id === selectedChat);
   const selectedUser = selectedChatData?.participants?.find((p) => p._id !== user?._id);
 
-  if (!user) return <div className="card">Loading...</div>;
+  if (!user) return <Loader message="Loading chats..." className="mx-auto" />;
 
   return (
     <div className="layout">

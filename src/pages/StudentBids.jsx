@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
 import Sidebar from "../components/Sidebar";
+import Loader from "../components/Loader";
 import { toast } from "react-toastify";
 
 export default function StudentBids({ isSidebarOpen, toggleSidebar }) {
@@ -56,7 +57,7 @@ export default function StudentBids({ isSidebarOpen, toggleSidebar }) {
       <div className="flex min-h-screen bg-gray-50">
         <Sidebar isOpen={isSidebarOpen} toggle={toggleSidebar} user={user} />
         <div className="flex-1 p-8">
-          <div className="text-center">Loading...</div>
+          <Loader message="Loading your bids..." />
         </div>
       </div>
     );

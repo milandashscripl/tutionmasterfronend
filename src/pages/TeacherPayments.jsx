@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import API from "../../api/api";
+import API from "../api/api";
 import { toast } from "react-toastify";
+import Loader from "../components/Loader";
 
 const TeacherPayments = () => {
   const [payments, setPayments] = useState([]);
@@ -108,11 +109,7 @@ const TeacherPayments = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <Loader message="Loading payments..." className="mx-auto" />;
   }
 
   return (

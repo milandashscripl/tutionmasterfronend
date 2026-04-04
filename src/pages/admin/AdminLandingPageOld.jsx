@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../../api/api";
+import Loader from "../../components/Loader";
 
 export default function AdminLandingPage() {
   const [settings, setSettings] = useState(null);
@@ -122,7 +123,7 @@ export default function AdminLandingPage() {
     }));
   };
 
-  if (!settings) return <div>Loading...</div>;
+  if (!settings) return <Loader message="Loading landing page settings..." className="mx-auto" />;
 
   return (
     <div className="admin-page" style={{ padding: '20px', maxWidth: '1200px' }}>

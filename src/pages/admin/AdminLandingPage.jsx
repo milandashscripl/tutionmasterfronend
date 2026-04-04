@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import API from "../../api/api";
+import Loader from "../../components/Loader";
 
 export default function AdminLandingPage() {
   const [settings, setSettings] = useState(null);
@@ -168,7 +169,7 @@ export default function AdminLandingPage() {
     }));
   };
 
-  if (!settings) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>;
+  if (!settings) return <Loader message="Loading landing page settings..." className="mx-auto" />;
 
   const themeColor = "#6366f1";
 

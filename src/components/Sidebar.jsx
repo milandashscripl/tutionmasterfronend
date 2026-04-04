@@ -29,7 +29,8 @@ export default function Sidebar({ user, isOpen, onClose }) {
         ...baseItems,
         { key: "bids", label: "Teacher Bids", icon: "💰", path: "/student-bids" },
         { key: "attendance", label: "My Attendance", icon: "📊", path: "/attendance" },
-        { key: "payments", label: "My Payments", icon: "💳", path: "/payments" },
+        { key: "leaves", label: "My Leaves", icon: "📅", path: "/student-leaves" },
+        { key: "payments", label: "My Payments", icon: "💳", path: "/student-payments" },
         { key: "profile", label: "Profile", icon: "👤", path: "/profile" },
         { key: "settings", label: "Settings", icon: "⚙️", path: "/settings" },
       ];
@@ -37,7 +38,7 @@ export default function Sidebar({ user, isOpen, onClose }) {
       return [
         ...baseItems,
         { key: "bidding", label: "Find Students", icon: "🔍", path: "/teacher-bidding" },
-        { key: "attendance", label: "Attendance", icon: "📊", path: "/teacher-attendance" },
+        { key: "attendance", label: "Daily Attendance", icon: "📊", path: "/daywise-attendance" },
         { key: "payments", label: "Payments", icon: "💳", path: "/teacher-payments" },
         { key: "leaves", label: "Leave Requests", icon: "📅", path: "/leave-requests" },
         { key: "profile", label: "Profile", icon: "👤", path: "/profile" },
@@ -63,10 +64,6 @@ export default function Sidebar({ user, isOpen, onClose }) {
   };
 
   const NAV_ITEMS = getNavItems();
-
-export default function Sidebar({ user, isOpen, onClose }) {
-  const navigate = useNavigate();
-  const location = useLocation();
 
   const handleNavigate = (path) => {
     navigate(path);

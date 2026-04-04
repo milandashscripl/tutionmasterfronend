@@ -20,6 +20,9 @@ import TeacherAttendance from "./pages/TeacherAttendance";
 import Payments from "./pages/Payments";
 import TeacherPayments from "./pages/TeacherPayments";
 import LeaveRequests from "./pages/LeaveRequests";
+import StudentLeaveRequests from "./pages/StudentLeaveRequests";
+import StudentPayments from "./pages/StudentPayments";
+import DaywiseAttendance from "./pages/DaywiseAttendance";
 import Chapters from "./pages/Chapters";
 import AdminLeaveManagement from "./pages/AdminLeaveManagement";
 import TeacherBidding from "./pages/TeacherBidding";
@@ -123,6 +126,18 @@ export default function App() {
           <Route
             path="/leave-requests"
             element={<LeaveRequests isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
+          />
+          <Route
+            path="/student-leaves"
+            element={<StudentLeaveRequests isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
+          />
+          <Route
+            path="/student-payments"
+            element={<StudentPayments isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
+          />
+          <Route
+            path="/daywise-attendance"
+            element={<DaywiseAttendance isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
           />
           <Route
             path="/teacher-bidding"

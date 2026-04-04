@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import API from "../api/api";
 import Sidebar from "../components/Sidebar";
+import Loader from "../components/Loader";
 
 export default function Profile({ isSidebarOpen, toggleSidebar }) {
   const [user, setUser] = useState(null);
@@ -91,7 +92,7 @@ export default function Profile({ isSidebarOpen, toggleSidebar }) {
     }
   };
 
-  if (!user) return <div style={{ padding: "50px", textAlign: "center" }}>Loading Profile...</div>;
+  if (!user) return <Loader message="Loading profile..." className="mx-auto" />;
 
   return (
     <div className="layout">

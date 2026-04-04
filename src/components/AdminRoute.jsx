@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import API from "../api/api";
+import Loader from "./Loader";
 
 export default function AdminRoute({ children }) {
 
@@ -36,7 +37,7 @@ export default function AdminRoute({ children }) {
   }, []);
 
   if (loading) {
-    return <div style={{ padding: "40px" }}>Checking Admin Access...</div>;
+    return <Loader message="Checking admin access..." className="mx-auto" />;
   }
 
   if (!isAdmin) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
 import Sidebar from "../components/Sidebar";
+import Loader from "../components/Loader";
 
 export default function Settings({ isSidebarOpen, toggleSidebar }) {
   const [user, setUser] = useState(null);
@@ -144,7 +145,7 @@ const handleSaveSettings = async () => {
     setSaving(false);
   }
 };
-  if (!user) return <div className="card">Loading...</div>;
+  if (!user) return <Loader message="Loading settings..." className="mx-auto" />;
 
   return (
     <div className="layout">

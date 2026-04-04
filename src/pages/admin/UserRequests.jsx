@@ -48,7 +48,7 @@ export default function UserRequests() {
   };
 
   if (loading) {
-    return <div className="admin-page"><h3>Loading requests...</h3></div>;
+    return <div className="admin-page"><Loader message="Loading requests..." className="mx-auto" /></div>;
   }
 
   return (

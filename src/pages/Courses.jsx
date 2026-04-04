@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../api/api";
 import Sidebar from "../components/Sidebar";
+import Loader from "../components/Loader";
 
 export default function Courses({ isSidebarOpen, toggleSidebar }) {
   const [user, setUser] = useState(null);
@@ -278,7 +279,7 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
     }
   };
 
-  if (!user) return <div className="card">Loading...</div>;
+  if (!user) return <Loader message="Loading courses..." className="mx-auto" />;
 
   return (
     <div className="layout">
@@ -372,7 +373,7 @@ export default function Courses({ isSidebarOpen, toggleSidebar }) {
 
             {/* COURSES GRID */}
             {loading ? (
-              <div className="card" style={{ textAlign: "center", padding: "40px" }}>Loading courses...</div>
+              <Loader message="Loading courses..." className="mx-auto" />
             ) : courses.length === 0 ? (
               <div className="card" style={{ textAlign: "center", padding: "40px" }}>
                 <p className="muted">No courses found. {user.registrationType === "teacher" ? "Be the first to create one!" : ""}</p>

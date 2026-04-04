@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import API from "../api/api";
 import Sidebar from "../components/Sidebar";
+import Loader from "../components/Loader";
 
 export default function Home({ isSidebarOpen, toggleSidebar }) {
   const [user, setUser] = useState(null);
@@ -156,7 +157,7 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
     }
   };
 
-  if (loading || !user) return <div className="card">Loading...</div>;
+  if (loading || !user) return <Loader message="Preparing your dashboard..." className="mx-auto" />;
 
   return (
     <div className="layout">
@@ -350,7 +351,7 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
               </div>
 
               {loadingReviews ? (
-                <div style={{ textAlign: "center", padding: "20px" }}>Loading feedback...</div>
+                <Loader message="Loading feedback..." className="mx-auto" />
               ) : reviews.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "40px 10px" }}>
                   <p className="muted">No reviews yet. Be the first to rate!</p>

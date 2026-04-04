@@ -40,7 +40,7 @@ export default function Home({ isSidebarOpen, toggleSidebar }) {
         } else if (userRes.data.registrationType === "teacher") {
           try {
             const suggestionRes = await API.get("/user/suggestions");
-            setTeacherSuggestions(suggestionRes.data);
+            setTeacherSuggestions(suggestionRes.data?.students || []);
           } catch (err) {
             if (err.response?.status === 403) {
               console.warn("Teacher suggestions require premium membership", err.response.data.message);

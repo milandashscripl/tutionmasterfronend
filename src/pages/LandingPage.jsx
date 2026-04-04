@@ -69,19 +69,13 @@ export default function LandingPage() {
         const landingRes = await API.get("/admin/landing-page");
         if (landingRes.data) setLandingContent(landingRes.data);
 
-        // 3. Fetch User Stats
-        const res = await API.get("/admin/users");
-        const allUsers = res.data || [];
-        const activeUsers = allUsers.filter(u => u.isApproved && u.isVerified);
-        const students = activeUsers.filter(u => u.registrationType === "student");
-        const tutors = activeUsers.filter(u => u.registrationType === "teacher");
-        const uniqueColleges = [...new Set(tutors.map(t => t.teacherDetails?.college).filter(Boolean))];
-
-        setStats({
-          students: students.length,
-          tutors: tutors.length,
-          colleges: uniqueColleges.length || 15
-        });
+        // Public landing page should not call protected admin user stats.
+        // Use fallback or content-provided stats instead.
+        setStats((prev) => ({
+          tutors: prev.tutors || 450,
+          students: prev.students || 1200,
+          colleges: prev.colleges || 25,
+        }));
       } catch (error) {
         console.error("Error fetching landing page data:", error);
         setStats({ tutors: 450, students: 1200, colleges: 25 });
@@ -91,8 +85,6 @@ export default function LandingPage() {
     };
     fetchData();
   }, []);
-
-  if (loading) return <Loader message="Loading landing page..." className="mx-auto" />;
 
   useEffect(() => {
     if (loading) return;
@@ -104,6 +96,8 @@ export default function LandingPage() {
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     return () => observer.disconnect();
   }, [loading]);
+
+  if (loading) return <Loader message="Loading landing page..." className="mx-auto" />;
 
   return (
     <div className="landing-container">

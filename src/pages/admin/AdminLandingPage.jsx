@@ -9,6 +9,53 @@ export default function AdminLandingPage() {
   const [fileUploads, setFileUploads] = useState({}); // Track file uploads
   const fileInputRefs = useRef({});
 
+  const defaultLandingSettings = {
+    heroSlides: [],
+    aboutSection: {
+      badge: "",
+      title: "",
+      description1: "",
+      description2: "",
+      imageUrl: ""
+    },
+    howItWorks: {
+      title: "",
+      subtitle: "",
+      steps: []
+    },
+    testimonials: [],
+    contactSection: {
+      title: "",
+      subtitle: "",
+      location: "",
+      email: ""
+    },
+    footer: {
+      copyright: ""
+    },
+    premiumConfig: {
+      studentPremiumPrice: 0,
+      teacherPremiumPrice: 0,
+      highRatedTeacherThreshold: 4.5,
+      highPayingStudentThreshold: 4.5,
+      premiumDurationDays: 30
+    }
+  };
+
+  const normalizeSettings = (data = {}) => ({
+    heroSlides: Array.isArray(data.heroSlides) ? data.heroSlides : defaultLandingSettings.heroSlides,
+    aboutSection: { ...defaultLandingSettings.aboutSection, ...(data.aboutSection || {}) },
+    howItWorks: {
+      ...defaultLandingSettings.howItWorks,
+      ...(data.howItWorks || {}),
+      steps: Array.isArray(data?.howItWorks?.steps) ? data.howItWorks.steps : defaultLandingSettings.howItWorks.steps
+    },
+    testimonials: Array.isArray(data.testimonials) ? data.testimonials : defaultLandingSettings.testimonials,
+    contactSection: { ...defaultLandingSettings.contactSection, ...(data.contactSection || {}) },
+    footer: { ...defaultLandingSettings.footer, ...(data.footer || {}) },
+    premiumConfig: { ...defaultLandingSettings.premiumConfig, ...(data.premiumConfig || {}) }
+  });
+
   useEffect(() => {
     fetchSettings();
   }, []);
@@ -16,9 +63,10 @@ export default function AdminLandingPage() {
   const fetchSettings = async () => {
     try {
       const res = await API.get("/admin/landing-page");
-      setSettings(res.data);
+      setSettings(normalizeSettings(res.data));
     } catch (err) {
       console.error("Error fetching landing page settings:", err);
+      setSettings(normalizeSettings());
     }
   };
 
@@ -70,21 +118,25 @@ export default function AdminLandingPage() {
         }
       });
 
+      const heroSlides = Array.isArray(settings.heroSlides) ? settings.heroSlides : [];
+      const testimonials = Array.isArray(settings.testimonials) ? settings.testimonials : [];
+      const howItWorks = settings.howItWorks || defaultLandingSettings.howItWorks;
+
       // Add text fields
       const dataToSend = {
-        heroSlides: settings.heroSlides.map((slide, idx) => ({
-          title: slide.title,
-          subtitle: slide.subtitle,
+        heroSlides: heroSlides.map((slide, idx) => ({
+          title: slide.title || "",
+          subtitle: slide.subtitle || "",
           imageFile: fileUploads[`heroImage_${idx}`] ? `heroImage_${idx}` : null,
-          existingImageUrl: !fileUploads[`heroImage_${idx}`] ? slide.imageUrl : null
+          existingImageUrl: !fileUploads[`heroImage_${idx}`] ? slide.imageUrl || "" : null
         })),
         aboutSection: {
-          badge: settings.aboutSection.badge,
-          title: settings.aboutSection.title,
-          description1: settings.aboutSection.description1,
-          description2: settings.aboutSection.description2,
+          badge: settings.aboutSection?.badge || "",
+          title: settings.aboutSection?.title || "",
+          description1: settings.aboutSection?.description1 || "",
+          description2: settings.aboutSection?.description2 || "",
           imageFile: fileUploads['aboutImage'] ? 'aboutImage' : null,
-          existingImageUrl: !fileUploads['aboutImage'] ? settings.aboutSection.imageUrl : null
+          existingImageUrl: !fileUploads['aboutImage'] ? settings.aboutSection?.imageUrl || "" : null
         },
         premiumConfig: {
           studentPremiumPrice: Number(settings.premiumConfig?.studentPremiumPrice || 0),
@@ -93,10 +145,10 @@ export default function AdminLandingPage() {
           highPayingStudentThreshold: Number(settings.premiumConfig?.highPayingStudentThreshold || 4.5),
           premiumDurationDays: Number(settings.premiumConfig?.premiumDurationDays || 30)
         },
-        howItWorks: settings.howItWorks,
-        testimonials: settings.testimonials,
-        contactSection: settings.contactSection,
-        footer: settings.footer
+        howItWorks,
+        testimonials,
+        contactSection: settings.contactSection || defaultLandingSettings.contactSection,
+        footer: settings.footer || defaultLandingSettings.footer
       };
 
       formData.append('data', JSON.stringify(dataToSend));
@@ -144,28 +196,62 @@ export default function AdminLandingPage() {
   const removeHeroSlide = (index) => {
     setSettings(prev => ({
       ...prev,
-      heroSlides: prev.heroSlides.filter((_, i) => i !== index)
+      heroSlides: (prev.heroSlides || []).filter((_, i) => i !== index)
     }));
-    // Clean up file uploads
+
     setFileUploads(prev => {
-      const newUploads = { ...prev };
-      delete newUploads[`heroImage_${index}`];
-      delete newUploads[`heroImage_${index}_preview`];
+      const newUploads = {};
+      Object.entries(prev).forEach(([key, value]) => {
+        const match = key.match(/^heroImage_(\d+)(_preview)?$/);
+        if (!match) {
+          newUploads[key] = value;
+          return;
+        }
+
+        const oldIndex = Number(match[1]);
+        const suffix = match[2] || "";
+        if (oldIndex === index) return;
+
+        const newIndex = oldIndex > index ? oldIndex - 1 : oldIndex;
+        newUploads[`heroImage_${newIndex}${suffix}`] = value;
+      });
       return newUploads;
     });
+
+    fileInputRefs.current = {};
   };
 
   const addTestimonial = () => {
     setSettings(prev => ({
       ...prev,
-      testimonials: [...prev.testimonials, { content: "", author: "" }]
+      testimonials: [...(prev.testimonials || []), { content: "", author: "" }]
     }));
   };
 
   const removeTestimonial = (index) => {
     setSettings(prev => ({
       ...prev,
-      testimonials: prev.testimonials.filter((_, i) => i !== index)
+      testimonials: (prev.testimonials || []).filter((_, i) => i !== index)
+    }));
+  };
+
+  const addHowItWorksStep = () => {
+    setSettings(prev => ({
+      ...prev,
+      howItWorks: {
+        ...prev.howItWorks,
+        steps: [...(prev.howItWorks?.steps || []), { number: "", title: "", description: "" }]
+      }
+    }));
+  };
+
+  const removeHowItWorksStep = (index) => {
+    setSettings(prev => ({
+      ...prev,
+      howItWorks: {
+        ...prev.howItWorks,
+        steps: (prev.howItWorks?.steps || []).filter((_, i) => i !== index)
+      }
     }));
   };
 
@@ -338,7 +424,7 @@ export default function AdminLandingPage() {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px' }}>Badge</label>
                 <input
                   type="text"
-                  value={settings.aboutSection.badge}
+                  value={settings.aboutSection?.badge || ""}
                   onChange={(e) => updateSettings('aboutSection.badge', e.target.value)}
                   style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
                   placeholder="e.g., Our Story"
@@ -348,7 +434,7 @@ export default function AdminLandingPage() {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px' }}>Title</label>
                 <input
                   type="text"
-                  value={settings.aboutSection.title}
+                  value={settings.aboutSection?.title || ""}
                   onChange={(e) => updateSettings('aboutSection.title', e.target.value)}
                   style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
                   placeholder="Section title"
@@ -359,7 +445,7 @@ export default function AdminLandingPage() {
             <div style={{ marginBottom: '15px' }}>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px' }}>Description 1</label>
               <textarea
-                value={settings.aboutSection.description1}
+                value={settings.aboutSection?.description1 || ""}
                 onChange={(e) => updateSettings('aboutSection.description1', e.target.value)}
                 rows="3"
                 style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
@@ -370,7 +456,7 @@ export default function AdminLandingPage() {
             <div style={{ marginBottom: '15px' }}>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px' }}>Description 2</label>
               <textarea
-                value={settings.aboutSection.description2}
+                value={settings.aboutSection?.description2 || ""}
                 onChange={(e) => updateSettings('aboutSection.description2', e.target.value)}
                 rows="3"
                 style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
@@ -381,10 +467,10 @@ export default function AdminLandingPage() {
             <div>
               <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', fontSize: '14px' }}>Section Image</label>
 
-              {(fileUploads['aboutImage_preview'] || (settings.aboutSection.imageUrl && !settings.aboutSection.imageUrl.includes('[File:'))) && (
+              {(fileUploads['aboutImage_preview'] || (settings.aboutSection?.imageUrl && !settings.aboutSection.imageUrl.includes('[File:'))) && (
                 <div style={{ marginBottom: '15px' }}>
                   <img 
-                    src={fileUploads['aboutImage_preview'] || settings.aboutSection.imageUrl}
+                    src={fileUploads['aboutImage_preview'] || settings.aboutSection?.imageUrl}
                     alt="About section"
                     style={{ maxWidth: '200px', maxHeight: '150px', borderRadius: '6px', border: '1px solid #ddd' }}
                   />
@@ -514,33 +600,61 @@ export default function AdminLandingPage() {
             </div>
             <div>
               <h4>Steps</h4>
-              {settings.howItWorks.steps.map((step, idx) => (
-                <div key={idx} style={{ marginBottom: '15px', padding: '15px', border: '1px solid #eee', borderRadius: '6px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr', gap: '10px' }}>
-                    <input
-                      type="text"
-                      value={step.number}
-                      onChange={(e) => updateSettings(`howItWorks.steps.${idx}.number`, e.target.value)}
-                      style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-                      placeholder="Number"
-                    />
-                    <input
-                      type="text"
-                      value={step.title}
-                      onChange={(e) => updateSettings(`howItWorks.steps.${idx}.title`, e.target.value)}
-                      style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-                      placeholder="Step title"
-                    />
-                    <input
-                      type="text"
-                      value={step.description}
-                      onChange={(e) => updateSettings(`howItWorks.steps.${idx}.description`, e.target.value)}
-                      style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-                      placeholder="Description"
-                    />
+              {Array.isArray(settings.howItWorks?.steps) && settings.howItWorks.steps.length > 0 ? (
+                settings.howItWorks.steps.map((step, idx) => (
+                  <div key={idx} style={{ marginBottom: '15px', padding: '15px', border: '1px solid #eee', borderRadius: '6px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr auto', gap: '10px', alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        value={step.number || ""}
+                        onChange={(e) => updateSettings(`howItWorks.steps.${idx}.number`, e.target.value)}
+                        style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                        placeholder="Number"
+                      />
+                      <input
+                        type="text"
+                        value={step.title || ""}
+                        onChange={(e) => updateSettings(`howItWorks.steps.${idx}.title`, e.target.value)}
+                        style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                        placeholder="Step title"
+                      />
+                      <input
+                        type="text"
+                        value={step.description || ""}
+                        onChange={(e) => updateSettings(`howItWorks.steps.${idx}.description`, e.target.value)}
+                        style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                        placeholder="Description"
+                      />
+                      <button
+                        onClick={() => removeHowItWorksStep(idx)}
+                        type="button"
+                        style={{ background: '#ff4444', color: 'white', border: 'none', padding: '10px', borderRadius: '6px', cursor: 'pointer' }}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p style={{ color: '#555', marginBottom: '15px' }}>No steps configured yet. Add your first step below.</p>
+              )}
+
+              <button
+                onClick={addHowItWorksStep}
+                type="button"
+                style={{
+                  background: themeColor,
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                + Add Step
+              </button>
             </div>
           </div>
         )}
@@ -594,7 +708,7 @@ export default function AdminLandingPage() {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Title</label>
                 <input
                   type="text"
-                  value={settings.contactSection.title}
+                  value={settings.contactSection?.title || ""}
                   onChange={(e) => updateSettings('contactSection.title', e.target.value)}
                   style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
                 />
@@ -603,7 +717,7 @@ export default function AdminLandingPage() {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Subtitle</label>
                 <input
                   type="text"
-                  value={settings.contactSection.subtitle}
+                  value={settings.contactSection?.subtitle || ""}
                   onChange={(e) => updateSettings('contactSection.subtitle', e.target.value)}
                   style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
                 />
@@ -612,7 +726,7 @@ export default function AdminLandingPage() {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Location</label>
                 <input
                   type="text"
-                  value={settings.contactSection.location}
+                  value={settings.contactSection?.location || ""}
                   onChange={(e) => updateSettings('contactSection.location', e.target.value)}
                   style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
                 />
@@ -621,7 +735,7 @@ export default function AdminLandingPage() {
                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Email</label>
                 <input
                   type="email"
-                  value={settings.contactSection.email}
+                  value={settings.contactSection?.email || ""}
                   onChange={(e) => updateSettings('contactSection.email', e.target.value)}
                   style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
                 />

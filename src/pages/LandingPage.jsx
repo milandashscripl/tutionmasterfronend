@@ -131,6 +131,7 @@ export default function LandingPage() {
           <a href="#home" className="link" onClick={() => setMenuOpen(false)}>Home</a>
           <a href="#about" className="link" onClick={() => setMenuOpen(false)}>About</a>
           <a href="#how-it-works" className="link" onClick={() => setMenuOpen(false)}>Process</a>
+          <a href="#business-logic" className="link" onClick={() => setMenuOpen(false)}>How It Works</a>
           <a href="#testimonials" className="link" onClick={() => setMenuOpen(false)}>Reviews</a>
           <a href="#contact" className="link" onClick={() => setMenuOpen(false)}>Contact</a>
           <Link to="/login" className="link">Login</Link>
@@ -201,6 +202,92 @@ export default function LandingPage() {
         <div className="stat-item"><h3>{loading ? "..." : `${stats.tutors}+`}</h3><p>Tutors</p></div>
         <div className="stat-item"><h3>{loading ? "..." : stats.students}+</h3><p>Students</p></div>
         <div className="stat-item"><h3>{loading ? "..." : stats.colleges}</h3><p>Institutions</p></div>
+      </section>
+
+      {/* BUSINESS LOGIC SECTION */}
+      <section id="business-logic" className="business-logic reveal">
+        <div className="container">
+          <div className="section-header">
+            <h2>How TuitionMaster Works</h2>
+            <p>Our innovative business model connects quality education with fair compensation</p>
+          </div>
+
+          <div className="business-grid">
+            <div className="business-card">
+              <div className="business-icon">🎯</div>
+              <h3>Smart Matching Algorithm</h3>
+              <p>Our AI-powered system matches students with teachers based on subject expertise, location, teaching style, and student preferences for optimal learning outcomes.</p>
+            </div>
+
+            <div className="business-card">
+              <div className="business-icon">💰</div>
+              <h3>Premium Membership System</h3>
+              <p>Students pay a small premium fee to access high-rated teachers, while teachers pay to reach premium student opportunities. This ensures quality on both sides.</p>
+            </div>
+
+            <div className="business-card">
+              <div className="business-icon">📊</div>
+              <h3>Data-Driven Insights</h3>
+              <p>Track attendance, performance metrics, and engagement levels. Our analytics help both students and teachers optimize their learning and teaching strategies.</p>
+            </div>
+
+            <div className="business-card">
+              <div className="business-icon">🔒</div>
+              <h3>Verified & Secure</h3>
+              <p>All users undergo thorough verification. Secure payment processing and encrypted communications ensure a safe environment for all participants.</p>
+            </div>
+
+            <div className="business-card">
+              <div className="business-icon">📱</div>
+              <h3>Real-time Communication</h3>
+              <p>Built-in chat system with file sharing, session scheduling, and progress tracking. Stay connected and organized throughout your learning journey.</p>
+            </div>
+
+            <div className="business-card">
+              <div className="business-icon">🏆</div>
+              <h3>Performance Rewards</h3>
+              <p>High-performing teachers get priority access to premium students. Consistent attendance and positive reviews lead to better opportunities and higher earnings.</p>
+            </div>
+          </div>
+
+          <div className="revenue-model">
+            <h3>Revenue Model</h3>
+            <div className="model-grid">
+              <div className="model-item">
+                <h4>Student Premium</h4>
+                <p className="price">₹{landingContent.premiumConfig?.studentPremiumPrice || 500}/month</p>
+                <ul>
+                  <li>Access to high-rated teachers</li>
+                  <li>Priority matching</li>
+                  <li>Advanced analytics</li>
+                  <li>Premium support</li>
+                </ul>
+              </div>
+
+              <div className="model-item">
+                <h4>Teacher Premium</h4>
+                <p className="price">₹{landingContent.premiumConfig?.teacherPremiumPrice || 500}/month</p>
+                <ul>
+                  <li>Access to premium students</li>
+                  <li>Advanced bidding tools</li>
+                  <li>Marketing boost</li>
+                  <li>Analytics dashboard</li>
+                </ul>
+              </div>
+
+              <div className="model-item">
+                <h4>Free Tier</h4>
+                <p className="price">₹0/month</p>
+                <ul>
+                  <li>Basic matching</li>
+                  <li>Standard chat features</li>
+                  <li>Limited analytics</li>
+                  <li>Community support</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* TESTIMONIALS */}
@@ -307,6 +394,23 @@ export default function LandingPage() {
         .btn-primary:hover { opacity: 0.9; transform: scale(1.02); }
         .landing-footer { padding: 30px; background: #111; color: #555; text-align: center; }
         .badge { background: var(--accent-1); color: #fff; padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 10px; }
+        .business-logic { padding: 80px 0; background: linear-gradient(135deg, rgba(201,163,94,0.03) 0%, rgba(201,163,94,0.01) 100%); }
+        .business-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 60px; padding: 0 5%; }
+        .business-card { background: #fff; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: 0.3s; border: 1px solid rgba(201,163,94,0.1); }
+        .business-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+        .business-icon { font-size: 3rem; margin-bottom: 20px; }
+        .business-card h3 { margin-bottom: 15px; color: var(--text); }
+        .business-card p { color: #666; line-height: 1.6; }
+        .revenue-model { background: #fff; padding: 40px; border-radius: 15px; margin: 0 5%; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .revenue-model h3 { text-align: center; margin-bottom: 40px; color: var(--text); }
+        .model-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+        .model-item { text-align: center; padding: 25px; border: 2px solid #f0f0f0; border-radius: 12px; transition: 0.3s; }
+        .model-item:hover { border-color: var(--accent-1); transform: translateY(-2px); }
+        .model-item h4 { margin-bottom: 10px; color: var(--text); }
+        .price { font-size: 1.8rem; font-weight: 700; color: var(--accent-1); margin-bottom: 15px; }
+        .model-item ul { list-style: none; padding: 0; text-align: left; }
+        .model-item li { margin-bottom: 8px; color: #666; position: relative; padding-left: 20px; }
+        .model-item li:before { content: "✓"; color: var(--accent-1); font-weight: bold; position: absolute; left: 0; }
         @media (max-width: 900px) {
           .hamburger { display: flex; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; z-index: 2000; padding: 5px; }
           .hamburger .bar { width: 22px; height: 2px; background: #333; transition: 0.3s; }

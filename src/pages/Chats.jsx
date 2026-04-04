@@ -200,12 +200,12 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
           
           {!selectedChat ? (
             <>
-              <div style={{ padding: "16px", fontWeight: "bold", borderBottom: "1px solid #eee" }}>
+              <div style={{ padding: "16px", fontWeight: "bold", borderBottom: "1px solid #eee", background: "var(--bg)", color: "var(--text)" }}>
                 Messages
               </div>
 
               {/* SEARCH BAR */}
-              <div style={{ padding: "10px 16px", background: "#fff", borderBottom: "1px solid #eee" }}>
+              <div style={{ padding: "10px 16px", background: "var(--bg)", borderBottom: "1px solid #eee" }}>
                 <div style={{ display: "flex", alignItems: "center", background: "#f3f4f6", padding: "8px 14px", borderRadius: "10px" }}>
                   <span style={{ marginRight: "10px", opacity: 0.5 }}>🔍</span>
                   <input
@@ -213,7 +213,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
                     placeholder="Search by name..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: "16px" }}
+                    style={{ flex: 1, border: "none", background: "transparent", outline: "none", fontSize: "16px", color: "var(--text)" }}
                   />
                   {searchTerm && (
                     <button onClick={() => setSearchTerm("")} style={{ border: "none", background: "none", cursor: "pointer", opacity: 0.5 }}>✕</button>
@@ -222,7 +222,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
               </div>
 
               {/* TABS */}
-              <div style={{ display: "flex", borderBottom: "1px solid #eee", background: "#fff", overflowX: "auto" }}>
+              <div style={{ display: "flex", borderBottom: "1px solid #eee", background: "var(--bg)", overflowX: "auto" }}>
                 {["all", "teacher", "student", "admin"].map((tab) => (
                   <button
                     key={tab}
@@ -285,10 +285,10 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
           ) : (
             <>
               {/* CHAT HEADER */}
-              <div style={{ padding: "10px 15px", borderBottom: "1px solid #eee", fontWeight: "bold", display: "flex", alignItems: "center", gap: "12px", background: "#fff" }}>
+              <div style={{ padding: "10px 15px", borderBottom: "1px solid #eee", fontWeight: "bold", display: "flex", alignItems: "center", gap: "12px", background: "var(--bg)" }}>
                 <button
                   onClick={() => { setSelectedChat(null); setMessages([]); }}
-                  style={{ border: "none", background: "none", cursor: "pointer", fontSize: "22px", padding: "5px" }}
+                  style={{ border: "none", background: "none", cursor: "pointer", fontSize: "22px", padding: "5px", color: "var(--text)" }}
                 >
                   ←
                 </button>
@@ -308,7 +308,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
               </div>
 
               {/* MESSAGES */}
-              <div style={{ flex: 1, overflowY: "auto", padding: "15px", background: "#f9f9f9" }}>
+              <div style={{ flex: 1, overflowY: "auto", padding: "15px", background: "var(--bg)" }}>
                 {messages.map((msg) => (
                   <div
                     key={msg._id}
@@ -323,7 +323,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
                         padding: "10px 14px",
                         borderRadius: msg.sender._id === user._id ? "15px 15px 2px 15px" : "15px 15px 15px 2px",
                         background: msg.sender._id === user._id ? "var(--accent-1)" : "#fff",
-                        color: msg.sender._id === user._id ? "#fff" : "#333",
+                        color: msg.sender._id === user._id ? "#fff" : "var(--text)",
                         boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
                         maxWidth: "75%",
                         wordBreak: "break-word",
@@ -338,7 +338,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
               </div>
 
               {/* INPUT AREA */}
-              <form onSubmit={handleSendMessage} style={{ padding: "10px", borderTop: "1px solid #eee", background: "#fff" }}>
+              <form onSubmit={handleSendMessage} style={{ padding: "10px", borderTop: "1px solid #eee", background: "var(--bg)" }}>
                 <div style={{ display: "flex", alignItems: "center", background: "#f0f2f5", borderRadius: "25px", padding: "5px 15px" }}>
                   <textarea
                     value={newMessage}
@@ -346,7 +346,7 @@ export default function Chats({ isSidebarOpen, toggleSidebar }) {
                     onKeyDown={handleKeyDown}
                     placeholder="Message..."
                     rows={1}
-                    style={{ flex: 1, border: "none", background: "transparent", resize: "none", outline: "none", fontSize: "15px", padding: "8px 0" }}
+                    style={{ flex: 1, border: "none", background: "transparent", resize: "none", outline: "none", fontSize: "15px", padding: "8px 0", color: "var(--text)" }}
                   />
                   <button
                     type="submit"

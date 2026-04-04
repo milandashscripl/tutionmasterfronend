@@ -7,6 +7,9 @@ const TeacherPayments = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({});
+  const [user, setUser] = useState(null);
+  const [premiumStatus, setPremiumStatus] = useState(null);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [filters, setFilters] = useState({
     status: '',
     studentId: '',
@@ -24,9 +27,20 @@ const TeacherPayments = () => {
   });
 
   useEffect(() => {
+    fetchUserData();
     fetchPayments();
     fetchStats();
   }, [filters]);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await API.get('/user/me');
+      setUser(response.data);
+      setPremiumStatus(response.data.premiumStatus);
+    } catch (error) {
+      console.error("Failed to fetch user data");
+    }
+  };
 
   const fetchPayments = async () => {
     try {
@@ -71,13 +85,31 @@ const TeacherPayments = () => {
     }
   };
 
-  const markAsOverdue = async (paymentId) => {
+  const handlePremiumPayment = async () => {
     try {
-      await API.put(`/payments/${paymentId}/overdue`);
-      toast.success("Payment marked as overdue");
-      fetchPayments();
+      // Get premium pricing from settings
+      const settingsRes = await API.get('/admin/settings/public');
+      const premiumPrice = settingsRes.data?.premiumConfig?.teacherPremiumPrice || 500;
+
+      // Create premium payment record
+      const paymentRes = await API.post('/payments/premium', {
+        type: 'teacher_premium',
+        amount: premiumPrice
+      });
+
+      // Process payment (in real implementation, integrate with Razorpay)
+      const processRes = await API.post('/payments/process', {
+        paymentId: paymentRes.data.payment._id,
+        razorpayOrderId: `order_${Date.now()}`,
+        razorpayPaymentId: `pay_${Date.now()}`,
+        razorpaySignature: `sig_${Date.now()}`
+      });
+
+      toast.success("Premium membership activated successfully!");
+      setShowPremiumModal(false);
+      fetchUserData();
     } catch (error) {
-      toast.error("Failed to mark payment as overdue");
+      toast.error("Premium payment failed");
     }
   };
 
@@ -96,6 +128,7 @@ const TeacherPayments = () => {
       case 'monthly_fee': return 'text-blue-600 bg-blue-100';
       case 'penalty': return 'text-red-600 bg-red-100';
       case 'refund': return 'text-green-600 bg-green-100';
+      case 'teacher_premium': return 'text-purple-600 bg-purple-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
@@ -108,6 +141,8 @@ const TeacherPayments = () => {
     });
   };
 
+  const isPremiumActive = premiumStatus?.isActive && new Date(premiumStatus.expiresAt) > new Date();
+
   if (loading) {
     return <Loader message="Loading payments..." className="mx-auto" />;
   }
@@ -115,7 +150,35 @@ const TeacherPayments = () => {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Payment Management</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-3xl font-bold text-gray-900">Payment Management</h1>
+
+          {/* Premium Status Card */}
+          <div className={`p-4 rounded-lg shadow ${isPremiumActive ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-gray-100 text-gray-700'}`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-3 h-3 rounded-full ${isPremiumActive ? 'bg-white' : 'bg-gray-400'}`}></div>
+              <div>
+                <div className="font-semibold">
+                  {isPremiumActive ? 'Premium Member' : 'Free Member'}
+                </div>
+                <div className="text-sm opacity-75">
+                  {isPremiumActive
+                    ? `Expires: ${new Date(premiumStatus.expiresAt).toLocaleDateString()}`
+                    : 'Upgrade to access premium features'
+                  }
+                </div>
+              </div>
+              {!isPremiumActive && (
+                <button
+                  onClick={() => setShowPremiumModal(true)}
+                  className="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Upgrade
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -363,6 +426,60 @@ const TeacherPayments = () => {
           </div>
         )}
       </div>
+
+      {/* Premium Modal */}
+      {showPremiumModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">⭐</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Upgrade to Premium</h2>
+              <p className="text-gray-600">Unlock exclusive features and priority access</p>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div className="flex items-center gap-3">
+                <span className="text-green-500">✓</span>
+                <span>Access to premium student pool</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-green-500">✓</span>
+                <span>Priority in matching algorithm</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-green-500">✓</span>
+                <span>Advanced analytics and insights</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-green-500">✓</span>
+                <span>Premium customer support</span>
+              </div>
+            </div>
+
+            <div className="text-center mb-6">
+              <div className="text-3xl font-bold text-purple-600">₹500</div>
+              <div className="text-gray-600">per month</div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowPremiumModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePremiumPayment}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 font-semibold"
+              >
+                Upgrade Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
